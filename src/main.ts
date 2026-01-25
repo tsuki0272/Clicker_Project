@@ -1,24 +1,10 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import ClickerSimulationController from "./controller/clickersimulation-controller.ts";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+let clickerSimController = new ClickerSimulationController();
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+// we need to connect the button on the page with the
+// method we want to invoke on the controller class.
+
+document.querySelector("#add-additive-upgrade")!
+.addEventListener("click",
+    (e) => clickerSimController.addAdditiveUpgrade())

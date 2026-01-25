@@ -8,16 +8,16 @@ date: Winter 2026
 
 ```mermaid
 classDiagram
-    class ClickerSimulation {
+    class Clickersimulation {
         -number totalClicks
         -number clickPower
         -Array ~Upgrade~ upgrades
         
         +getTotalClicks() number
-        +setClickPower() number
+        +changeClickPower() number
     }
 
-    ClickerSimulation --* Upgrade
+    Clickersimulation --* Upgrade
     
     class Upgrade {
         <<interface>>
@@ -27,10 +27,10 @@ classDiagram
         +applyUpgrade() void
     }
     
-    Upgrade <|.. AdditiveUpgrade
+    Upgrade <|.. Additiveupgrade
     Upgrade <|.. MultiplicativeUpgrade
     
-    class AdditiveUpgrade {
+    class Additiveupgrade {
         -String description
 
         +getDescription() String
@@ -44,12 +44,13 @@ classDiagram
         +applyUpgrade() void
     }
 
-    note for ClickerSimulation "Class invariants:  
+    note for Clickersimulation "Class invariants:  
     <ul>
         <li> totalClicks >= 0
+        <li> clickPower >= 0
     </ul>"
         
-    note for AdditiveUpgrade "Class invariants: 
+    note for Additiveupgrade "Class invariants: 
     <ul>
         <li> description.size() > 0
     </ul>"
