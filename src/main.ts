@@ -7,4 +7,4 @@ let clickerSimController = new ClickerSimulationController();
 
 document.querySelector("#add-additive-upgrade")!
 .addEventListener("click",
-    (e) => clickerSimController.addAdditiveUpgrade())
+    () => clickerSimController.addAdditiveUpgrade())

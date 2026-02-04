@@ -1,5 +1,4 @@
 import type Clickersimulation from "../model/clickersimulation.ts";
-import type {Upgrade} from "../model/upgrade.ts";
 
 export default class ClickerSimulationView {
     #clickerSimulation: Clickersimulation;

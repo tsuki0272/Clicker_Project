@@ -22,10 +22,16 @@ export default class Clickersimulation {
         assert(this.#clickPower >= 0, "Click power must be greater or equal to 0");
     }
 
+    // Getters:
+    get totalClicks(): number {
+        return this.#totalClicks;
+    }
+
     get upgrades(): Array<Upgrade> {
         return this.#upgrades;
     }
 
+    // Adds an upgrade if it doesn't already exist in the upgrades list
     addUpgrade(upgrade: Upgrade): void {
         if (!this.#upgrades.includes(upgrade)) {
             this.#upgrades.push(upgrade);
@@ -33,10 +39,7 @@ export default class Clickersimulation {
         this.notifyAll();
     }
 
-    get totalClicks(): number {
-        return this.#totalClicks;
-    }
-
+    // Updates the click power by some amount. Must be greater or equal to 0.
     changeClickPower(by: number) : number {
         if (this.#clickPower + by >= 0) {
             this.#clickPower += by;
@@ -47,6 +50,7 @@ export default class Clickersimulation {
         return this.#clickPower;
     }
 
+    // Listener methods:
     notifyAll(): void  {
         this.#listeners.forEach((listener: Listener) => {listener.notify()})
     }
