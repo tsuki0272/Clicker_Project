@@ -19,8 +19,22 @@ Winter 2026. Clicker Clicker has the user click on a Clicker (also known as a cu
 [Incremental game]: https://en.wikipedia.org/wiki/Incremental_game
 
 # Running
+This project is a Node.js project using Vite. You can run it on the command
+line using `npx`:
 
-Nothing yet...
+```bash
+npx vite
+```
+
+And then open your web browser and go to the address printed out by Vite.
+
+## Tests
+
+You can run the tests with Vitest:
+
+```bash
+npx vitest
+```
 
 # Domain model and flow diagrams
 
