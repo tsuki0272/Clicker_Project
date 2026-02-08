@@ -13,7 +13,10 @@ classDiagram
         -number clickPower
         -Array ~Upgrade~ upgrades
         
-        +getTotalClicks() number
+        +get totalClicks() number
+        +get clickPower() number
+        +get upgrades() Array ~Upgrade~
+        +addUpgrade(Upgrade upgrade)
         +changeClickPower() number
     }
 
@@ -21,9 +24,15 @@ classDiagram
     
     class Upgrade {
         <<interface>>
+        -String id
         -String description
+        -number cost
         
-        +getDescription() String
+        +get id() String
+        +get description() String
+        +set description(String d)
+        +get cost() number
+        
         +applyUpgrade() void
     }
     
@@ -31,16 +40,32 @@ classDiagram
     Upgrade <|.. MultiplicativeUpgrade
     
     class Additiveupgrade {
+        -String id
         -String description
+        -number cost
+        -number additiveEffect
 
-        +getDescription() String
+        +get id() String
+        +get description() String
+        +set description(String d)
+        +get cost() number
+        +get additiveEffect() number
+        
         +applyUpgrade() void
     }
 
     class MultiplicativeUpgrade {
+        -String id
         -String description
+        -number cost
+        -number multiplicativeEffect
 
-        +getDescription() String
+        +get id() String
+        +get description() String
+        +set description(String d)
+        +get cost() number
+        +get multiplicativeEffect() number
+        
         +applyUpgrade() void
     }
 
@@ -52,11 +77,17 @@ classDiagram
         
     note for Additiveupgrade "Class invariants: 
     <ul>
+        <li> id.size() > 0
         <li> description.size() > 0
+        <li> cost > 0
+        <li> additiveEffect > 0
     </ul>"
 
     note for MultiplicativeUpgrade "Class invariants: 
     <ul>
+        <li> id.size() > 0
         <li> description.size() > 0
+        <li> cost > 0
+        <li> multiplicativeEffect > 0
     </ul>"
 ```

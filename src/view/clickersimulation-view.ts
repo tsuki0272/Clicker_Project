@@ -16,9 +16,9 @@ export default class ClickerSimulationView {
 
         document.querySelector('#clickerSim')!.innerHTML =
             `
-            <p id="totalClicks"> ${this.#clickerSimulation.totalClicks} </p>
-            <p id="clickPower"> ${this.#clickerSimulation.clickPower} </p>
-            <button type="button" id="clicker-button">
+            <p id="totalClicks"> <b>Total clicks:</b> ${this.#clickerSimulation.totalClicks} </p>
+            <p id="clickPower"> <b>Click power:</b> ${this.#clickerSimulation.clickPower} </p>
+            <button type="button" id="clicker-button" style="cursor: pointer;">
                 <img src="assets/Cursor.webp" height="256" width="256" alt="Cursor image"/>
             </button>`
 
@@ -34,8 +34,9 @@ export default class ClickerSimulationView {
 
         document.querySelector("#upgradesSection")!.innerHTML =
             `<div id='clickerSimulation'>
-                <button id="add-additive-upgrade1">Additive Upgrade 1</button>
-                <button id="add-multiplicative-upgrade1">Multiplicative Upgrade 1</button>
+                <p><b>Upgrades:</b></p>
+                <button id="add-additive-upgrade1" style="cursor: pointer;">Additive Upgrade</button>
+                <button id="add-multiplicative-upgrade1" style="cursor: pointer;">Multiplicative Upgrade</button>
                 <ul></ul>
             </div>`
 
@@ -128,11 +129,10 @@ export default class ClickerSimulationView {
 
     #closeDialog() {
         this.#dialog.close();
-        document.body.removeChild(this.#dialog);
     }
 
     notify(): void {
-        this.#totalClicks.textContent = `Total clicks: ${this.#clickerSimulation.totalClicks}`;
-        this.#clickPower.textContent = `Click power: ${this.#clickerSimulation.clickPower}`;
+        this.#totalClicks.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.totalClicks}`;
+        this.#clickPower.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.clickPower}`;
     }
 }
