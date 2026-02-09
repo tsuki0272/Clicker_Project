@@ -116,7 +116,7 @@ export default class ClickerSimulationView {
 
     #displayErrorDialog(missing: number) {
         this.#dialog.innerHTML = `
-            <button>X</button>\
+            <button>X</button>
             <p>Insufficient Clicks!</p>
             <p>You're missing ${missing} clicks</p>`
 
@@ -133,6 +133,6 @@ export default class ClickerSimulationView {
 
     notify(): void {
         this.#totalClicks.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.totalClicks}`;
-        this.#clickPower.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.clickPower}`;
+        this.#clickPower.innerHTML = `<b>Click power:</b> ${this.#clickerSimulation.clickPower}`;
     }
 }
