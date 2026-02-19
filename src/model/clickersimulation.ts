@@ -12,12 +12,14 @@ import Multiplicativeupgrade from "./multiplicativeupgrade.ts";
 export default class ClickerSimulation {
     #totalClicks: number;
     #clickPower: number;
+    #autoCPS: number; // autoclick cps
     #upgrades: Array<Upgrade>;
     #listeners: Array<Listener>;
 
     constructor() {
         this.#totalClicks = 0;
         this.#clickPower = 1;
+        this.#autoCPS = 0;
         this.#upgrades = new Array<Upgrade>();
         this.#listeners = new Array<Listener>();
 
