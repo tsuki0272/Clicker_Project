@@ -6,6 +6,11 @@ date: Winter 2026
 
 # Flows of Interaction
 
+## Changes in Phase 2:
+* Added 2 new flows:
+  * [Account Login](account-login)
+  * [Building purchase](building-purchase)
+
 ## Diagrams
 
 ### Account Login

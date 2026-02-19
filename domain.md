@@ -21,17 +21,16 @@ date: Winter 2026
     * AdditiveBuilding
     * MultiplicativeBuilding
 
-
 * Made Changes to ClickerSimulation:
   * Added array of Buildings and supporting methods
   * Added new field **autoCPS** that will increase totalClicks automatically
   * Buildings will increase autoCPS by a certain amount with every purchase
 
-
 * Added data modelling information like cardinality, constraints, and bidirectional relationships.
   * 1 AccountManager is composed of many Accounts
   * 1 Account is composed of 1 ClickerSimulation
   * 1 ClickerSimulation is composed of many Upgrades
+
 ```mermaid
 classDiagram
     

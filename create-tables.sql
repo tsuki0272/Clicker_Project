@@ -16,13 +16,26 @@ create table clicker_simulation(
 );
 
 -- Upgrade
--- Using Flattened Hierarchy for Additive/Multiplicative
+-- Using Flattened Hierarchy for Additive/Multiplicative effect
 create table upgrade(
     id serial not null unique,
     description varchar(255) not null,
     cost int not null,
     additive_effect int,
     multiplicative_effect int,
+    game_id serial,
+    foreign key (game_id) references clicker_simulation(id)
+        on delete cascade
+);
+
+-- Building
+-- Using Flattened Hierarchy for Additive/Multiplicative value
+create table building(
+    id serial not null unique,
+    description varchar(255) not null,
+    cost int not null,
+    additive_value int,
+    multiplicative_value int,
     game_id serial,
     foreign key (game_id) references clicker_simulation(id)
         on delete cascade
