@@ -14,8 +14,7 @@ date: Winter 2026
 * Relationships will be bidirectional.
 
 ## Changes in Phase 2:
-* Added 4 new classes:
-  * AccountManager (manages accounts, allowing for addition and removal of accounts)
+* Added 3 new classes:
   * Account (contains an instance of ClickerSimulation and handles user identification)
   * Building (interface, used for autoclicking)
     * AdditiveBuilding
@@ -27,20 +26,11 @@ date: Winter 2026
   * Buildings will increase autoCPS by a certain amount with every purchase
 
 * Added data modelling information like cardinality, constraints, and bidirectional relationships.
-  * 1 AccountManager is composed of many Accounts
   * 1 Account is composed of 1 ClickerSimulation
   * 1 ClickerSimulation is composed of many Upgrades
 
 ```mermaid
 classDiagram
-    
-    class AccountManager {
-        -Array ~Account~ accounts
-        
-        +createAccount(String username, String password) void
-        +deleteAccount(Account a) void
-    }
-
     class Account {
         -~String username
         -String password
@@ -206,7 +196,6 @@ classDiagram
         <li> multiplicativeValue > 0
     </ul>"
     
-    AccountManager "1" --* "*" Account
     Account "1" --* "1" Clickersimulation
     Clickersimulation "1" --* "*" Upgrade
     Clickersimulation "1" --* "*" Building

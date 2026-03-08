@@ -29,11 +29,11 @@ flowchart
     subgraph Account Login
         
         loginPage[[Login Page]]
-        loginPage == User clicks NEW ACCOUNT button ==> newAccount
-        loginPage == User clicks EXISTING ACCOUNT button ==> existingAccount
+        loginPage == NEW ACCOUNT ==> newAccount
+        loginPage == EXISTING ACCOUNT ==> existingAccount
 
         newAccount[Account Creation View]
-        newAccount == Username and Password ==> createAccountProcessing
+        newAccount == username and password==> createAccountProcessing
         
         createAccountProcessing{Create Account}
         createAccountProcessing -. Duplicate username .-> newAccount
@@ -43,15 +43,15 @@ flowchart
         createAccountProcessing -. account .-> accountCreated
 
         accountCreated[Account Created]
-        accountCreated -. return to login .-> loginPage
+        accountCreated -. return to login .-> loggedIn
 
         existingAccount[Account Login View]
         existingAccount == Username and Password ==> loginProcessing
         loginProcessing{Logging Into Account}
         loginProcessing -. Username and password mismatch error .-> existingAccount
-        loginProcessing -. account .-> loggedIn
+        loginProcessing -. logged in successfully .-> loggedIn
         
-        loggedIn[[Logged In Successfully]]
+        loggedIn[[game home page]]
     end
 ```
 
