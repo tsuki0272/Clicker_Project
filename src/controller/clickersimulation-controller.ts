@@ -3,6 +3,9 @@ import Additiveupgrade from "../model/additiveupgrade.ts";
 import ClickerSimulationView from "../view/clickersimulation-view.ts";
 import Multiplicativeupgrade from "../model/multiplicativeupgrade.ts";
 import UpgradeView from "../view/upgrade-view.ts";
+import Additivebuilding from "../model/additivebuilding.ts";
+import Multiplicativebuilding from "../model/multiplicativebuilding.ts";
+import BuildingView from "../view/building-view.ts";
 
 /**
  * Acts as the intermediary between the ClickerSimulation model and the UI views.
@@ -13,6 +16,7 @@ export default class ClickerSimulationController {
     #clickersimulation: Clickersimulation;
     #clickerSimulationView: ClickerSimulationView;
     #upgradeView: UpgradeView;
+    #buildingView: BuildingView;
 
     constructor() {
         this.#clickersimulation = new Clickersimulation();
@@ -26,7 +30,16 @@ export default class ClickerSimulationController {
             "multiplicativeUpgrade1", 20, 1.2);
         this.#clickersimulation.addUpgrade(multiplicativeUpgrade);
 
-        this.#upgradeView = new UpgradeView(additiveUpgrade, this);
+        let additiveBuilding = new Additivebuilding(
+            "additiveBuilding1", 15, 1);
+        this.#clickersimulation.addBuilding(additiveBuilding);
+
+        let multiplicativeBuilding = new Multiplicativebuilding(
+            "multiplicativeBuilding1", 25, 1.5);
+        this.#clickersimulation.addBuilding(multiplicativeBuilding);
+
+        this.#upgradeView = new UpgradeView(this);
+        this.#buildingView = new BuildingView(additiveBuilding, this);
     }
 
     /**
@@ -47,6 +60,14 @@ export default class ClickerSimulationController {
     }
 
     /**
+     * Attempts to purchase and apply a building based on its unique ID.
+     */
+    applyBuilding(id: string): void {
+        const building = this.#clickersimulation.getBuildingById(id);
+        this.#clickersimulation.applyBuilding(building);
+    }
+
+    /**
      * Commands the upgrade view to display details for a specific upgrade.
      */
     showUpgradeDescription(id: string): void {
@@ -55,9 +76,24 @@ export default class ClickerSimulationController {
     }
 
     /**
+     * Commands the building view to display details for a specific building.
+     */
+    showBuildingDescription(id: string): void {
+        const building = this.#clickersimulation.getBuildingById(id);
+        this.#buildingView.updateBuildingDescription(building);
+    }
+
+    /**
      * Commands the upgrade view to hide or remove the description overlay.
      */
     closeUpgradeDescription(): void {
         this.#upgradeView.closeView();
+    }
+
+    /**
+     * Commands the building view to hide or remove the description overlay.
+     */
+    closeBuildingDescription(): void {
+        this.#buildingView.closeView();
     }
 }

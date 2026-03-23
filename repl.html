@@ -7,30 +7,6 @@
     <title>Clicker_Project REPL</title>
 </head>
 <body>
-<script
-        src="https://cdn.jsdelivr.net/npm/@electric-sql/pglite-repl/dist-webcomponent/Repl.js"
-        type="module"
-></script>
 
-<!-- Include the Repl web component in your page -->
-<pglite-repl id="repl"></pglite-repl>
-
-<script type="module">
-    import { PGlite } from 'https://cdn.jsdelivr.net/npm/@electric-sql/pglite/dist/index.js'
-
-    import ddl from './create-tables.sql?raw'
-
-    // Create a PGlite instance
-    const pg = new PGlite('idb//clicker_project')
-
-    console.log(ddl)
-    pg.exec(ddl);
-
-    // Retrieve the Repl element
-    const repl = document.getElementById('repl')
-
-    // REPL to your PGlite instance
-    repl.pg = pg
-</script>
 </body>
 </html>

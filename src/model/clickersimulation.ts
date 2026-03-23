@@ -3,6 +3,9 @@ import type {Upgrade} from "./upgrade.ts";
 import type Listener from "./listener.ts";
 import Additiveupgrade from "./additiveupgrade.ts";
 import Multiplicativeupgrade from "./multiplicativeupgrade.ts";
+import type {Building} from "./building.ts";
+import Additivebuilding from "./additivebuilding.ts";
+import Multiplicativebuilding from "./multiplicativebuilding.ts";
 
 /**
  * Core engine for the clicker game simulation.
@@ -14,6 +17,7 @@ export default class ClickerSimulation {
     #clickPower: number;
     #autoCPS: number; // autoclick cps
     #upgrades: Array<Upgrade>;
+    #buildings: Array<Building>;
     #listeners: Array<Listener>;
 
     constructor() {
@@ -21,7 +25,9 @@ export default class ClickerSimulation {
         this.#clickPower = 1;
         this.#autoCPS = 0;
         this.#upgrades = new Array<Upgrade>();
+        this.#buildings= new Array<Building>();
         this.#listeners = new Array<Listener>();
+        this.#startGameLoop();
 
         this.#checkClickerSimulation();
     }
@@ -43,6 +49,10 @@ export default class ClickerSimulation {
         return this.#clickPower;
     }
 
+    get autoCPS(): number {
+        return this.#autoCPS;
+    }
+
     get upgrades(): Array<Upgrade> {
         return this.#upgrades;
     }
@@ -61,6 +71,18 @@ export default class ClickerSimulation {
     }
 
     /**
+     * Adds a unique building instance to the available buildings pool.
+     * If an instance of the building already exists in the list, then it is not added.
+     */
+    addBuilding(building: Building): void {
+        if (!this.#buildings.includes(building)) {
+            this.#buildings.push(building);
+        }
+        this.notifyAll();
+        this.#checkClickerSimulation();
+    }
+
+    /**
      * Retrieves an upgrade by its unique identifier.
      * @throws {UpgradeNotFoundException} If the ID does not exist in the collection.
      */
@@ -68,6 +90,16 @@ export default class ClickerSimulation {
         const upgrade = this.#upgrades.find(u => u.id === id);
         if (!upgrade) throw new UpgradeNotFoundException("ID does not match any existing upgrade");
         return upgrade;
+    }
+
+    /**
+     * Retrieves a building by its unique identifier.
+     * @throws {UpgradeNotFoundException} If the ID does not exist in the collection.
+     */
+    getBuildingById(id: string): Building {
+        const building = this.#buildings.find(b => b.id === id);
+        if (!building) throw new BuildingNotFoundException("ID does not match any existing upgrade");
+        return building;
     }
 
     /**
@@ -94,6 +126,32 @@ export default class ClickerSimulation {
     }
 
     /**
+     * Processes the purchase of a building. Subtracts the cost and calls setInterval to update clicks every second
+     * based on the specific building type (Additive or Multiplicative).
+     * @throws {InsuficientClicksException} If totalClicks is less than the building cost.
+     */
+    applyBuilding(building: Building): void {
+        if (this.#totalClicks - building.cost < 0) {
+            // console.log(this.#totalClicks - upgrade.cost);
+            throw new InsuficientClicksException(building.cost - this.totalClicks);
+        }
+
+        if(building instanceof Additivebuilding) {
+            this.#autoCPS += building.additiveValue;
+        } else if(building instanceof Multiplicativebuilding) {
+            if(this.#autoCPS === 0) {
+                throw new InvalidBuildingPurchaseException("");
+            }
+            this.#autoCPS = Math.ceil(
+                this.#autoCPS *= building.multiplicativeValue);
+        }
+        this.#totalClicks -= building.cost;
+        building.applyBuilding();
+        this.notifyAll();
+        this.#checkClickerSimulation();
+    }
+
+    /**
      * Modifies the total click count, typically called when the user clicks or
      * passive income is generated.
      *  Note: takes in a parameter instead of processing the totalClicks
@@ -103,6 +161,16 @@ export default class ClickerSimulation {
         this.#totalClicks += by;
         this.notifyAll();
         this.#checkClickerSimulation();
+    }
+
+    #startGameLoop(): void {
+        setInterval(() => {
+            if (this.#autoCPS > 0) {
+                this.#totalClicks += this.#autoCPS;
+                this.notifyAll();
+                this.#checkClickerSimulation();
+            }
+        }, 1000);
     }
 
     /**
@@ -126,6 +194,11 @@ export default class ClickerSimulation {
 export class UpgradeNotFoundException extends Error { }
 
 /**
+ * Exception thrown when searching for an upgrade ID that does not exist.
+ */
+export class BuildingNotFoundException extends Error { }
+
+/**
  * Exception thrown when an upgrade purchase is attempted without enough clicks.
  */
 export class InsuficientClicksException extends Error {
@@ -136,3 +209,5 @@ export class InsuficientClicksException extends Error {
         this.missing = missing;
     }
 }
+
+export class InvalidBuildingPurchaseException extends Error { }
