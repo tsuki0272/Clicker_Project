@@ -1,6 +1,8 @@
 import {assert} from "../assertions.ts";
 import type {Upgrade} from "./upgrade.ts";
 import type Listener from "./listener.ts";
+import db from "./connection.ts";
+import type ClickerSimulation from "./clickersimulation.ts";
 
 /**
  * Represents an upgrade that provides a flat numerical boost to click power.
@@ -9,13 +11,15 @@ import type Listener from "./listener.ts";
  */
 export default class Additiveupgrade implements Upgrade {
     #id: string;
+    #accountID: ClickerSimulation;
     #description: string;
     #cost: number;
     #additiveEffect: number;
     #listeners: Array<Listener>;
 
-    constructor(id: string, cost: number, additiveEffect: number) {
+    constructor(id: string, cost: number, additiveEffect: number, account: ClickerSimulation) {
         this.#id = id;
+        this.#accountID = account;
         this.#description = `Increases CLICK POWER by ${additiveEffect}`;
         this.#cost = cost;
         this.#additiveEffect = additiveEffect;
@@ -39,6 +43,10 @@ export default class Additiveupgrade implements Upgrade {
         return this.#id;
     }
 
+    set id(id: string) {
+        this.#id = id;
+    }
+
     get description() : string {
         return this.#description;
     }
@@ -55,6 +63,26 @@ export default class Additiveupgrade implements Upgrade {
         return this.#additiveEffect;
     }
     // ----------------------------------------------
+
+    saveUpgrade(upgrade: Additiveupgrade): void {
+        Additiveupgrade.saveUpgrade(upgrade);
+    }
+
+    static async saveUpgrade(upgrade: Additiveupgrade): Promise<Upgrade> {
+        let results = await db().exec(
+            `insert into upgrade(id, description, cost, additive_effect, account_id) 
+            values(default, '${upgrade.description}', ${upgrade.cost}, ${upgrade.additiveEffect}, '${upgrade.#accountID}') 
+            returning id`)
+
+        results.forEach((result) => {
+            result.rows.forEach((row) => {
+                upgrade.id = row['id'];
+                console.log(`Upgrade has ID ${upgrade.id}`);
+            })
+        })
+        // @ts-ignore
+        return upgrade;
+    }
 
     /**
      * Executes the upgrade logic: scales the cost for the next tier,

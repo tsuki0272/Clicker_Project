@@ -6,6 +6,7 @@ import Multiplicativeupgrade from "./multiplicativeupgrade.ts";
 import type {Building} from "./building.ts";
 import Additivebuilding from "./additivebuilding.ts";
 import Multiplicativebuilding from "./multiplicativebuilding.ts";
+import db from "./connection.ts";
 
 /**
  * Core engine for the clicker game simulation.
@@ -13,6 +14,8 @@ import Multiplicativebuilding from "./multiplicativebuilding.ts";
  * and handles the logic for purchasing and applying various upgrades.
  */
 export default class ClickerSimulation {
+    #username: string;
+    #password: string;
     #totalClicks: number;
     #clickPower: number;
     #autoCPS: number; // autoclick cps
@@ -20,9 +23,11 @@ export default class ClickerSimulation {
     #buildings: Array<Building>;
     #listeners: Array<Listener>;
 
-    constructor() {
-        this.#totalClicks = 0;
-        this.#clickPower = 1;
+    constructor(username: string, password: string, totalClicks: number, clickPower: number) {
+        this.#username = username;
+        this.#password = password;
+        this.#totalClicks = totalClicks;
+        this.#clickPower = clickPower;
         this.#autoCPS = 0;
         this.#upgrades = new Array<Upgrade>();
         this.#buildings= new Array<Building>();
@@ -33,14 +38,25 @@ export default class ClickerSimulation {
     }
 
     /**
-     * Validates that the simulation state remains within logical bounds (non-negative values).
+     * Validates that the simulation state remains within logical bounds (non-negative values),
+     * and that the username and password are valid entries.
      */
     #checkClickerSimulation() {
+        assert(this.#username.length > 0, "Username length must be greater than 0");
+        assert(this.#password.length > 0, "Password length must be greater than 0");
         assert(this.#totalClicks >= 0, "Total Clicks must be greater or equal to 0");
         assert(this.#clickPower >= 0, "Click power must be greater or equal to 0");
     }
 
     // getters and setters -------------------------
+    get username(): string {
+        return this.#username;
+    }
+
+    get password(): string {
+        return this.#password;
+    }
+
     get totalClicks(): number {
         return this.#totalClicks;
     }
@@ -57,6 +73,38 @@ export default class ClickerSimulation {
         return this.#upgrades;
     }
     // ----------------------------------------------
+
+    static async getAllAccounts(): Promise<Array<ClickerSimulation>> {
+        const allAccounts = new Array<ClickerSimulation>();
+
+        let results = await db()
+            .query<{username: string, password: string, total_clicks: number, click_power: number}>(
+                "select username, password, total_clicks, click_power from account");
+
+        for(let row of results.rows) {
+            let account = new ClickerSimulation(
+                row.username, row.password, row.total_clicks, row.click_power);
+            allAccounts.push(account);
+        }
+        return allAccounts;
+    }
+    // username varchar(255) not null unique,
+    // password varchar(255) not null
+    // total_clicks int not null,
+    // click_power int not null,
+
+    static async saveClickerSimulation(clickerSimulation: ClickerSimulation): Promise<ClickerSimulation> {
+        await db().exec(`insert into account(username, password, total_clicks, click_power) 
+        values('${clickerSimulation.username}', '${clickerSimulation.password}', ${clickerSimulation.totalClicks},
+               ${clickerSimulation.clickPower}) on conflict do nothing returning username`)
+
+        clickerSimulation.upgrades.forEach(upgrade => {
+            if(!upgrade.id) {
+                upgrade.saveUpgrade(upgrade);
+            }
+        })
+        return clickerSimulation;
+    }
 
     /**
      * Adds a unique upgrade instance to the available upgrades pool.
@@ -163,6 +211,11 @@ export default class ClickerSimulation {
         this.#checkClickerSimulation();
     }
 
+    /**
+     * Starts the interval for buildings, called in the constructor.
+     * The totalClicks value will be updated every interval with the value stored in autoCPS.
+     * @private
+     */
     #startGameLoop(): void {
         setInterval(() => {
             if (this.#autoCPS > 0) {

@@ -2,17 +2,9 @@
 create table if not exists account (
     id serial not null unique,
     username varchar(255) not null unique,
-    password varchar(255) not null
-);
-
--- Clicker Simulation
-create table if not exists clicker_simulation (
-    id serial not null unique,
+    password varchar(255) not null,
     total_clicks int not null,
-    click_power int not null,
-    account_id serial not null unique,
-    foreign key (account_id) references account(id)
-        on delete cascade
+    click_power int not null
 );
 
 -- Upgrade
@@ -23,8 +15,8 @@ create table if not exists upgrade (
     cost int not null,
     additive_effect int,
     multiplicative_effect int,
-    game_id serial not null,
-    foreign key (game_id) references clicker_simulation(id)
+    account_id serial not null,
+    foreign key (account_id) references account(id)
         on delete cascade
 );
 
@@ -36,7 +28,7 @@ create table if not exists building (
     cost int not null,
     additive_value int,
     multiplicative_value int,
-    game_id serial not null,
-    foreign key (game_id) references clicker_simulation(id)
+    account_id serial not null,
+    foreign key (account_id) references account(id)
         on delete cascade
 );

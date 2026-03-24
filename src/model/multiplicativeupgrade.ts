@@ -1,6 +1,8 @@
 import {assert} from "../assertions.ts";
 import type {Upgrade} from "./upgrade.ts";
 import type Listener from "./listener.ts";
+import db from "./connection.ts";
+import type ClickerSimulation from "./clickersimulation.ts";
 
 /**
  * Represents a multiplicative upgrade that scales the user's click power.
@@ -9,13 +11,15 @@ import type Listener from "./listener.ts";
  */
 export default class Multiplicativeupgrade implements Upgrade {
     #id: string;
+    #accountID: ClickerSimulation;
     #description: string;
     #cost: number;
     #multiplicativeEffect: number;
     #listeners: Array<Listener>;
 
-    constructor(id: string, cost: number, multiplicativeEffect: number) {
+    constructor(id: string, cost: number, multiplicativeEffect: number, account: ClickerSimulation) {
         this.#id = id;
+        this.#accountID = account;
         this.#description = `Multiplies CLICK POWER by ${multiplicativeEffect.toFixed(2)}`;
         this.#cost = cost;
         this.#multiplicativeEffect = multiplicativeEffect;
@@ -39,6 +43,10 @@ export default class Multiplicativeupgrade implements Upgrade {
         return this.#id;
     }
 
+    set id(id: string) {
+        this.#id = id;
+    }
+
     get description() : string {
         return this.#description;
     }
@@ -51,6 +59,27 @@ export default class Multiplicativeupgrade implements Upgrade {
         return this.#multiplicativeEffect;
     }
     // ----------------------------------------------
+
+    // Keep the static method as-is, then add:
+    saveUpgrade(upgrade: Multiplicativeupgrade): void {
+        Multiplicativeupgrade.saveUpgrade(upgrade);
+    }
+
+    static async saveUpgrade(upgrade: Multiplicativeupgrade): Promise<Upgrade> {
+        let results = await db().exec(
+            `insert into upgrade(id, description, cost, additive_effect, account_id) 
+            values(default, '${upgrade.description}', ${upgrade.cost}, ${upgrade.multiplicativeEffect}, '${upgrade.#accountID}') 
+            returning id`)
+
+        results.forEach((result) => {
+            result.rows.forEach((row) => {
+                upgrade.id = row['id'];
+                console.log(`Upgrade has ID ${upgrade.id}`);
+            })
+        })
+        // @ts-ignore
+        return upgrade;
+    }
 
     /**
      * Executes the upgrade logic: scales the cost for the next tier,

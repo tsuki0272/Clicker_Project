@@ -13,4 +13,6 @@ export interface Upgrade {
 
     set description(value: string);
     registerListener(listener: Listener) : void;
+
+    saveUpgrade(upgrade: Upgrade): void;
 }
