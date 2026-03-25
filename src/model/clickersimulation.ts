@@ -32,7 +32,6 @@ export default class ClickerSimulation {
         this.#upgrades = new Array<Upgrade>();
         this.#buildings= new Array<Building>();
         this.#listeners = new Array<Listener>();
-        this.#startGameLoop();
 
         this.#checkClickerSimulation();
     }
@@ -123,7 +122,6 @@ export default class ClickerSimulation {
             const multiplicativeBuildings = await Multiplicativebuilding.getBuildingsForAccount(account);
             additiveBuildings.forEach(b => account.addBuilding(b));
             multiplicativeBuildings.forEach(b => account.addBuilding(b));
-
 
             allAccounts.push(account);
         }
@@ -251,21 +249,6 @@ export default class ClickerSimulation {
         this.#totalClicks += by;
         this.notifyAll();
         this.#checkClickerSimulation();
-    }
-
-    /**
-     * Starts the interval for buildings, called in the constructor.
-     * The totalClicks value will be updated every interval with the value stored in autoCPS.
-     * @private
-     */
-    #startGameLoop(): void {
-        setInterval(() => {
-            if (this.#autoCPS > 0) {
-                this.#totalClicks += this.#autoCPS;
-                this.notifyAll();
-                this.#checkClickerSimulation();
-            }
-        }, 1000);
     }
 
     /**

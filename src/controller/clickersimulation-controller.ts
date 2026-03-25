@@ -8,6 +8,8 @@ import Multiplicativebuilding from "../model/multiplicativebuilding.ts";
 import BuildingView from "../view/building-view.ts";
 import ClickerSimulation from "../model/clickersimulation.ts";
 import CreateAccountView from "../view/createaccount-view.ts";
+import type {Upgrade} from "../model/upgrade.ts";
+import type {Building} from "../model/building.ts";
 
 /**
  * Acts as the intermediary between the ClickerSimulation model and the UI views.
@@ -31,8 +33,8 @@ export default class ClickerSimulationController {
             } else {
                 this.#clickersimulation = allAccounts.at(0);
                 this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation!, this);
-                this.#upgradeView = new UpgradeView(this);
-                this.#buildingView = new BuildingView(this);
+                this.#upgradeView = new UpgradeView(this, this.#clickersimulation!.upgrades);
+                this.#buildingView = new BuildingView(this, this.#clickersimulation!.buildings);
             }
         })
     }
@@ -41,7 +43,6 @@ export default class ClickerSimulationController {
         let hashedPassword = await Clickersimulation.hashPassword(username, password);
         this.#clickersimulation = new ClickerSimulation(username, hashedPassword, 0, 1);
         this.#createAccountView = undefined;
-        this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
 
         let additiveUpgrade = new Additiveupgrade(
             "additiveUpgrade1", `Increases CLICK POWER by 10`,
@@ -50,7 +51,7 @@ export default class ClickerSimulationController {
 
         let multiplicativeUpgrade = new Multiplicativeupgrade(
             "multiplicativeUpgrade1", `Multiplies CLICK POWER by 1.2`,
-        20, 1.2, this.#clickersimulation);
+            20, 1.2, this.#clickersimulation);
         this.#clickersimulation.addUpgrade(multiplicativeUpgrade);
 
         let additiveBuilding = new Additivebuilding(
@@ -63,8 +64,9 @@ export default class ClickerSimulationController {
             25, 1.5, this.#clickersimulation);
         this.#clickersimulation.addBuilding(multiplicativeBuilding);
 
-        this.#upgradeView = new UpgradeView(this);
-        this.#buildingView = new BuildingView(this);
+        this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation!, this);
+        this.#upgradeView = new UpgradeView(this, this.#clickersimulation!.upgrades);
+        this.#buildingView = new BuildingView(this, this.#clickersimulation!.buildings);
         Clickersimulation.saveClickerSimulation(this.#clickersimulation);
     }
 
@@ -74,42 +76,39 @@ export default class ClickerSimulationController {
      */
     updateTotalClicks(): void {
         if (!this.#clickersimulation) return;
-
         this.#clickersimulation.updateTotalClicks(this.#clickersimulation.clickPower);
-        // console.log("increased total clicks by " + this.#clickersimulation.clickPower);
     }
 
-    /**
-     * Attempts to purchase and apply an upgrade based on its unique ID.
-     */
-    applyUpgrade(name: string): void {
+    updateTotalClicksAuto(): void {
         if (!this.#clickersimulation) return;
-
-        const upgrade = this.#clickersimulation.getUpgradeByName(name);
-        this.#clickersimulation.applyUpgrade(upgrade);
+        this.#clickersimulation.updateTotalClicks(this.#clickersimulation.autoCPS);
     }
 
     /**
-     * Attempts to purchase and apply a building based on its unique ID.
+     * Attempts to purchase and apply an upgrade.
      */
-    applyBuilding(id: string): void {
-        const building = this.#clickersimulation!.getBuildingById(id);
+    applyUpgrade(upgrade: Upgrade): void {
+        this.#clickersimulation!.applyUpgrade(upgrade);
+    }
+
+    /**
+     * Attempts to purchase and apply a building.
+     */
+    applyBuilding(building: Building): void {
         this.#clickersimulation!.applyBuilding(building);
     }
 
     /**
      * Commands the upgrade view to display details for a specific upgrade.
      */
-    showUpgradeDescription(name: string): void {
-        const upgrade = this.#clickersimulation!.getUpgradeByName(name);
+    showUpgradeDescription(upgrade: Upgrade): void {
         this.#upgradeView!.updateUpgradeDescription(upgrade);
     }
 
     /**
      * Commands the building view to display details for a specific building.
      */
-    showBuildingDescription(id: string): void {
-        const building = this.#clickersimulation!.getBuildingById(id);
+    showBuildingDescription(building: Building): void {
         this.#buildingView!.updateBuildingDescription(building);
     }
 
