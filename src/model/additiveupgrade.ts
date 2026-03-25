@@ -1,6 +1,8 @@
 import {assert} from "../assertions.ts";
 import type {Upgrade} from "./upgrade.ts";
 import type Listener from "./listener.ts";
+import db from "./connection.ts";
+import type ClickerSimulation from "./clickersimulation.ts";
 
 /**
  * Represents an upgrade that provides a flat numerical boost to click power.
@@ -8,15 +10,18 @@ import type Listener from "./listener.ts";
  * notify listeners when the upgrade state (like cost or effect) changes.
  */
 export default class Additiveupgrade implements Upgrade {
-    #id: string;
+    id?: number;
+    #name: string;
+    #accountID: ClickerSimulation;
     #description: string;
     #cost: number;
     #additiveEffect: number;
     #listeners: Array<Listener>;
 
-    constructor(id: string, cost: number, additiveEffect: number) {
-        this.#id = id;
-        this.#description = `Increases CLICK POWER by ${additiveEffect}`;
+    constructor(name: string, description: string, cost: number, additiveEffect: number, account: ClickerSimulation) {
+        this.#name = name;
+        this.#accountID = account;
+        this.#description = description; // `Increases CLICK POWER by ${additiveEffect}`;
         this.#cost = cost;
         this.#additiveEffect = additiveEffect;
         this.#listeners = new Array<Listener>();
@@ -28,15 +33,19 @@ export default class Additiveupgrade implements Upgrade {
      * Validates that all upgrade properties meet the required logical constraints.
      */
     #checkUpgrade() {
-        assert(this.#id.length > 0, "ID length must be greater than 0");
+        assert(this.#name.length > 0, "Upgrade name length must be greater than 0");
         assert(this.#description.length > 0, "Description length must be greater than 0");
         assert(this.#cost > 0, "Cost must be greater than 0");
         assert(this.#additiveEffect > 0, "Additive Effect must be greater than 0");
     }
 
     // getters and setters -------------------------
-    get id(): string {
-        return this.#id;
+    get name(): string {
+        return this.#name;
+    }
+
+    set name(name: string) {
+        this.#name = name;
     }
 
     get description() : string {
@@ -55,6 +64,48 @@ export default class Additiveupgrade implements Upgrade {
         return this.#additiveEffect;
     }
     // ----------------------------------------------
+
+    saveUpgrade(upgrade: Additiveupgrade): Promise<Upgrade> {
+        return Additiveupgrade.saveUpgrade(upgrade);
+    }
+
+    static async saveUpgrade(upgrade: Additiveupgrade): Promise<Upgrade> {
+        let results = await db().query<{
+            id: number
+        }>(
+            "insert into upgrade(name, description, cost, additive_effect, account_id) values($1, $2, $3, $4, $5) returning id",
+            [upgrade.name, upgrade.description, upgrade.cost, upgrade.additiveEffect, upgrade.#accountID.username]);
+
+        results.rows.forEach((row) => {
+            upgrade.id = row['id'];
+            console.log(`Upgrade has ID: ${upgrade.id}`);
+        })
+        return upgrade;
+    }
+
+    static async getUpgradesForAccount(clickerSimulation: ClickerSimulation): Promise<Array<Upgrade>> {
+        let results = await db().query<
+            {
+                id: number;
+                name: string;
+                description: string;
+                cost: number;
+                additive_effect: number;
+                account_id: string;
+            }>(
+            "select id, name, description, cost, additive_effect, account_id from upgrade where account_id = $1 and additive_effect is not null",
+            [clickerSimulation.username]);
+
+        let allUpgrades = new Array<Upgrade>();
+
+        results.rows.forEach((row) => {
+            let upgrade = new Additiveupgrade(row.name, row.description,
+                row.cost, row.additive_effect, clickerSimulation);
+            upgrade.id = row.id;
+            allUpgrades.push(upgrade);
+        })
+        return allUpgrades;
+    }
 
     /**
      * Executes the upgrade logic: scales the cost for the next tier,

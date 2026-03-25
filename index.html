@@ -4,12 +4,30 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="assets/Cursor.webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="src/style.css" >
     <title>clicker-project</title>
   </head>
   <body>
     <div id="clickerSim"> </div>
-    <div id="upgradesSection"> </div>
+    <div id="purchasablesSection"> </div>
 
     <script type="module" src="/src/main.ts"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@electric-sql/pglite-repl/dist-webcomponent/Repl.js"
+            type="module"></script>
+    <details>
+      <summary>Show/hide REPL</summary>
+    <!-- Include the Repl web component in your page -->
+    <pglite-repl id="repl"></pglite-repl>
+    </details>
+
+    <script type="module">
+      import db from './src/model/connection.ts'
+      // Retrieve the Repl element
+      const repl = document.getElementById('repl')
+
+      // REPL to your PGlite instance
+      repl.pg = db()
+    </script>
   </body>
 </html>

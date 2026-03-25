@@ -1,19 +1,20 @@
 import type Listener from "./listener.ts";
 
 /**
- * Interface defining the blueprint for game upgrades.
+ * Interface defining the blueprint for game buildings.
  * It enforces requirements for identifying properties, cost management,
  * state modification logic, and observer pattern integration.
  */
-export interface Upgrade {
-    id?: number;
+export interface Building {
+    dbId?: number;
+    get id(): string;
     get name(): string;
     get description(): string;
     get cost(): number;
-    applyUpgrade(): void;
+    applyBuilding(): void;
 
     set description(value: string);
-    registerListener(listener: Listener) : void;
+    registerListener(listener: Listener): void;
 
-    saveUpgrade(upgrade: Upgrade): Promise<Upgrade>;
+    saveBuilding(building: Building): Promise<Building>;
 }
