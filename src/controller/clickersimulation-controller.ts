@@ -27,40 +27,45 @@ export default class ClickerSimulationController {
 
         accountPromise.then((allAccounts) => {
             if (allAccounts.length == 0) {
-                // if no trainers: then make an instance of create trainer view:
                 this.#createAccountView = new CreateAccountView(this);
             } else {
-                // if there are trainers: then make an instance of trainer view :
                 this.#clickersimulation = allAccounts.at(0);
                 this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation!, this);
+                this.#upgradeView = new UpgradeView(this);
+                this.#buildingView = new BuildingView(this);
             }
         })
     }
 
-    addAccount(username: string, password: string): void {
-        this.#clickersimulation = new ClickerSimulation(username, password, 0, 1);
-        Clickersimulation.saveClickerSimulation(this.#clickersimulation);
+    async addAccount(username: string, password: string): Promise<void> {
+        let hashedPassword = await Clickersimulation.hashPassword(username, password);
+        this.#clickersimulation = new ClickerSimulation(username, hashedPassword, 0, 1);
         this.#createAccountView = undefined;
         this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
 
         let additiveUpgrade = new Additiveupgrade(
-            "additiveUpgrade1", 10, 1, this.#clickersimulation);
+            "additiveUpgrade1", `Increases CLICK POWER by 10`,
+            10, 1, this.#clickersimulation);
         this.#clickersimulation.addUpgrade(additiveUpgrade);
 
         let multiplicativeUpgrade = new Multiplicativeupgrade(
-            "multiplicativeUpgrade1", 20, 1.2, this.#clickersimulation);
+            "multiplicativeUpgrade1", `Multiplies CLICK POWER by 1.2`,
+        20, 1.2, this.#clickersimulation);
         this.#clickersimulation.addUpgrade(multiplicativeUpgrade);
 
         let additiveBuilding = new Additivebuilding(
-            "additiveBuilding1", 15, 1);
+            "additiveBuilding1", "Increases AUTOMATIC CLICKS by 1",
+            15, 1, this.#clickersimulation);
         this.#clickersimulation.addBuilding(additiveBuilding);
 
         let multiplicativeBuilding = new Multiplicativebuilding(
-            "multiplicativeBuilding1", 25, 1.5);
+            "multiplicativeBuilding1", "Multiplies AUTOMATIC CLICKS by 1.5",
+            25, 1.5, this.#clickersimulation);
         this.#clickersimulation.addBuilding(multiplicativeBuilding);
 
         this.#upgradeView = new UpgradeView(this);
         this.#buildingView = new BuildingView(this);
+        Clickersimulation.saveClickerSimulation(this.#clickersimulation);
     }
 
     /**
@@ -77,10 +82,10 @@ export default class ClickerSimulationController {
     /**
      * Attempts to purchase and apply an upgrade based on its unique ID.
      */
-    applyUpgrade(id: string): void {
+    applyUpgrade(name: string): void {
         if (!this.#clickersimulation) return;
 
-        const upgrade = this.#clickersimulation.getUpgradeById(id);
+        const upgrade = this.#clickersimulation.getUpgradeByName(name);
         this.#clickersimulation.applyUpgrade(upgrade);
     }
 
@@ -95,8 +100,8 @@ export default class ClickerSimulationController {
     /**
      * Commands the upgrade view to display details for a specific upgrade.
      */
-    showUpgradeDescription(id: string): void {
-        const upgrade = this.#clickersimulation!.getUpgradeById(id);
+    showUpgradeDescription(name: string): void {
+        const upgrade = this.#clickersimulation!.getUpgradeByName(name);
         this.#upgradeView!.updateUpgradeDescription(upgrade);
     }
 

@@ -15,8 +15,7 @@ export default class ClickerSimulationView {
         this.#clickerSimulation.registerListener(this);
         this.#controller = controller;
 
-        document.querySelector('#clickerSim')!.innerHTML =
-            `
+        document.querySelector('#clickerSim')!.innerHTML = `
             <p id="totalClicks"> <b>Total clicks:</b> ${this.#clickerSimulation.totalClicks} </p>
             <p id="clickPower"> <b>Click power:</b> ${this.#clickerSimulation.clickPower} </p>
             <p id="autoCPS"> <b>Auto CPS:</b> ${this.#clickerSimulation.autoCPS} </p>
@@ -30,8 +29,7 @@ export default class ClickerSimulationView {
 
         document.querySelector("#clicker-button")!
             .addEventListener("click",
-                () => {
-                    // update clicks by click amount
+                () => { // update clicks by click amount
                     this.#controller.updateTotalClicks();
                 })
 
@@ -53,6 +51,7 @@ export default class ClickerSimulationView {
         this.#setUpMultiplicativeUpgrade();
         this.#setUpAdditiveBuilding();
         this.#setUpMultiplicativeBuilding();
+        this.notify();
     }
 
     #setUpAdditiveUpgrade(): void {

@@ -10,17 +10,18 @@ import type ClickerSimulation from "./clickersimulation.ts";
  * notify listeners when the upgrade state (like cost or effect) changes.
  */
 export default class Multiplicativeupgrade implements Upgrade {
-    #id: string;
+    id?: number;
+    #name: string;
     #accountID: ClickerSimulation;
     #description: string;
     #cost: number;
     #multiplicativeEffect: number;
     #listeners: Array<Listener>;
 
-    constructor(id: string, cost: number, multiplicativeEffect: number, account: ClickerSimulation) {
-        this.#id = id;
+    constructor(name: string, description: string, cost: number, multiplicativeEffect: number, account: ClickerSimulation) {
+        this.#name = name;
         this.#accountID = account;
-        this.#description = `Multiplies CLICK POWER by ${multiplicativeEffect.toFixed(2)}`;
+        this.#description = description;
         this.#cost = cost;
         this.#multiplicativeEffect = multiplicativeEffect;
         this.#listeners = new Array<Listener>();
@@ -32,19 +33,19 @@ export default class Multiplicativeupgrade implements Upgrade {
      * Validates that all upgrade properties meet the required logical constraints.
      */
     #checkUpgrade() {
-        assert(this.#id.length > 0, "ID length must be greater than 0");
+        assert(this.#name.length > 0, "Upgrade name length must be greater than 0");
         assert(this.#description.length > 0, "Description length must be greater than 0");
         assert(this.#cost > 0, "Cost must be greater than 0");
         assert(this.#multiplicativeEffect > 0, "Multiplicative Effect must be greater than 0");
     }
 
     // getters and setters -------------------------
-    get id(): string {
-        return this.#id;
+    get name(): string {
+        return this.#name;
     }
 
-    set id(id: string) {
-        this.#id = id;
+    set name(name: string) {
+        this.#name = name;
     }
 
     get description() : string {
@@ -60,25 +61,45 @@ export default class Multiplicativeupgrade implements Upgrade {
     }
     // ----------------------------------------------
 
-    // Keep the static method as-is, then add:
-    saveUpgrade(upgrade: Multiplicativeupgrade): void {
-        Multiplicativeupgrade.saveUpgrade(upgrade);
+    saveUpgrade(upgrade: Multiplicativeupgrade): Promise<Upgrade> {
+        return Multiplicativeupgrade.saveUpgrade(upgrade);
     }
 
     static async saveUpgrade(upgrade: Multiplicativeupgrade): Promise<Upgrade> {
-        let results = await db().exec(
-            `insert into upgrade(id, description, cost, additive_effect, account_id) 
-            values(default, '${upgrade.description}', ${upgrade.cost}, ${upgrade.multiplicativeEffect}, '${upgrade.#accountID}') 
-            returning id`)
+        let results = await db().query<{
+            id: number
+        }>(
+            "insert into upgrade(name, description, cost, multiplicative_effect, account_id) values($1, $2, $3, $4, $5) returning id",
+            [upgrade.name, upgrade.description, upgrade.cost, upgrade.multiplicativeEffect, upgrade.#accountID.username]);
 
-        results.forEach((result) => {
-            result.rows.forEach((row) => {
-                upgrade.id = row['id'];
-                console.log(`Upgrade has ID ${upgrade.id}`);
-            })
+        results.rows.forEach((row) => {
+            upgrade.id = row['id'];
+            console.log(`Upgrade has ID: ${upgrade.id}`);
         })
-        // @ts-ignore
         return upgrade;
+    }
+
+    static async getUpgradesForAccount(clickerSimulation: ClickerSimulation): Promise<Array<Upgrade>> {
+        let results = await db().query<
+            {
+                id: number;
+                name: string;
+                description: string;
+                cost: number;
+                multiplicative_effect: number;
+                account_id: string;
+            }>(
+            "select id, name, description, cost, multiplicative_effect, account_id from upgrade where account_id = $1 and multiplicative_effect is not null",
+            [clickerSimulation.username]);
+        let allUpgrades = new Array<Upgrade>();
+
+        results.rows.forEach((row) => {
+            let upgrade = new Multiplicativeupgrade(row.name, row.description,
+                row.cost, row.multiplicative_effect, clickerSimulation);
+            upgrade.id = row.id;
+            allUpgrades.push(upgrade);
+        })
+        return allUpgrades;
     }
 
     /**

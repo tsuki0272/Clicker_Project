@@ -72,7 +72,36 @@ export default class ClickerSimulation {
     get upgrades(): Array<Upgrade> {
         return this.#upgrades;
     }
+
+    get buildings(): Array<Building> {
+        return this.#buildings;
+    }
     // ----------------------------------------------
+
+    static async hashPassword(username: string, password: string): Promise<string> {
+        const enc = new TextEncoder();
+        const keyMaterial = await window.crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            { name: "PBKDF2" },
+            false,
+            ["deriveBits"]
+        );
+        const salt = enc.encode(username);
+        const derivedBits = await window.crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+                salt: salt,
+                iterations: 10000,
+                hash: "SHA-256",
+            },
+            keyMaterial,
+            256
+        );
+        return Array.from(new Uint8Array(derivedBits))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+    }
 
     static async getAllAccounts(): Promise<Array<ClickerSimulation>> {
         const allAccounts = new Array<ClickerSimulation>();
@@ -84,23 +113,36 @@ export default class ClickerSimulation {
         for(let row of results.rows) {
             let account = new ClickerSimulation(
                 row.username, row.password, row.total_clicks, row.click_power);
+
+            const additiveUpgrades = await Additiveupgrade.getUpgradesForAccount(account);
+            const multiplicativeUpgrades = await Multiplicativeupgrade.getUpgradesForAccount(account);
+            additiveUpgrades.forEach(u => account.addUpgrade(u));
+            multiplicativeUpgrades.forEach(u => account.addUpgrade(u));
+
+            const additiveBuildings = await Additivebuilding.getBuildingsForAccount(account);
+            const multiplicativeBuildings = await Multiplicativebuilding.getBuildingsForAccount(account);
+            additiveBuildings.forEach(b => account.addBuilding(b));
+            multiplicativeBuildings.forEach(b => account.addBuilding(b));
+
+
             allAccounts.push(account);
         }
         return allAccounts;
     }
-    // username varchar(255) not null unique,
-    // password varchar(255) not null
-    // total_clicks int not null,
-    // click_power int not null,
 
     static async saveClickerSimulation(clickerSimulation: ClickerSimulation): Promise<ClickerSimulation> {
-        await db().exec(`insert into account(username, password, total_clicks, click_power) 
-        values('${clickerSimulation.username}', '${clickerSimulation.password}', ${clickerSimulation.totalClicks},
-               ${clickerSimulation.clickPower}) on conflict do nothing returning username`)
+        await db().query("insert into account(username, password, total_clicks, click_power) values($1, $2, $3, $4) on conflict do nothing returning username",
+            [clickerSimulation.username, clickerSimulation.password, clickerSimulation.totalClicks, clickerSimulation.clickPower])
 
         clickerSimulation.upgrades.forEach(upgrade => {
             if(!upgrade.id) {
                 upgrade.saveUpgrade(upgrade);
+            }
+        })
+
+        clickerSimulation.buildings.forEach(building => {
+            if(!building.dbId) {
+                building.saveBuilding(building);
             }
         })
         return clickerSimulation;
@@ -134,8 +176,8 @@ export default class ClickerSimulation {
      * Retrieves an upgrade by its unique identifier.
      * @throws {UpgradeNotFoundException} If the ID does not exist in the collection.
      */
-    getUpgradeById(id: string): Upgrade {
-        const upgrade = this.#upgrades.find(u => u.id === id);
+    getUpgradeByName(name: string): Upgrade {
+        const upgrade = this.#upgrades.find(u => u.name === name);
         if (!upgrade) throw new UpgradeNotFoundException("ID does not match any existing upgrade");
         return upgrade;
     }

@@ -6,7 +6,8 @@ import type Listener from "./listener.ts";
  * state modification logic, and observer pattern integration.
  */
 export interface Upgrade {
-    get id(): string;
+    id?: number;
+    get name(): string;
     get description(): string;
     get cost(): number;
     applyUpgrade(): void;
@@ -14,5 +15,5 @@ export interface Upgrade {
     set description(value: string);
     registerListener(listener: Listener) : void;
 
-    saveUpgrade(upgrade: Upgrade): void;
+    saveUpgrade(upgrade: Upgrade): Promise<Upgrade>;
 }

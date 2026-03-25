@@ -20,13 +20,16 @@ export default class CreateAccountView {
             <input type="text" id="username"><br><br>
 
             <label for="password">Password:</label>
-            <input type="text" id="password"><br><br>
+            <input type="password" id="password"><br><br>
 
             <button id="create-account-button">Create Account</button>
         `;
 
         document.querySelector("#create-account-button")!
-            .addEventListener("click", () => this.addAccount());
+            .addEventListener("click", () => {
+                this.addAccount();
+            });
+
     }
 
     addAccount(): void {
