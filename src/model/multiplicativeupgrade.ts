@@ -61,10 +61,17 @@ export default class Multiplicativeupgrade implements Upgrade {
     }
     // ----------------------------------------------
 
+    /**
+     * Instance method that delegates to the static saveUpgrade method.
+     */
     saveUpgrade(upgrade: Multiplicativeupgrade): Promise<Upgrade> {
         return Multiplicativeupgrade.saveUpgrade(upgrade);
     }
 
+    /**
+     * Persists a new upgrade record to the database and assigns the generated DB id
+     * back to the upgrade instance.
+     */
     static async saveUpgrade(upgrade: Multiplicativeupgrade): Promise<Upgrade> {
         let results = await db().query<{
             id: number
@@ -79,6 +86,10 @@ export default class Multiplicativeupgrade implements Upgrade {
         return upgrade;
     }
 
+    /**
+     * Retrieves all multiplicative upgrades for a given account from the database,
+     * filtering by account_id and ensuring only multiplicative rows are returned.
+     */
     static async getUpgradesForAccount(clickerSimulation: ClickerSimulation): Promise<Array<Upgrade>> {
         let results = await db().query<
             {
@@ -103,6 +114,16 @@ export default class Multiplicativeupgrade implements Upgrade {
     }
 
     /**
+     * Updates the upgrade's cost in the database after it has been purchased
+     * and its cost has been scaled for the next tier.
+     */
+    static async updateUpgrade(upgrade: Multiplicativeupgrade): Promise<void> {
+        await db().query(
+            "update upgrade set cost = $1 where name = $2 and account_id = $3",
+            [upgrade.cost, upgrade.name, upgrade.#accountID.username]);
+    }
+
+    /**
      * Executes the upgrade logic: scales the cost for the next tier,
      * updates the description, and triggers listener notifications.
      */
@@ -110,6 +131,7 @@ export default class Multiplicativeupgrade implements Upgrade {
         this.#cost *= 3;
         this.#checkUpgrade();
         this.notifyAll();
+        Multiplicativeupgrade.updateUpgrade(this);
     }
 
     /**

@@ -2,6 +2,11 @@ import type {Upgrade} from "../model/upgrade.ts";
 import type ClickerSimulationController from "../controller/clickersimulation-controller.ts";
 import {InsuficientClicksException} from "../model/clickersimulation.ts";
 
+/**
+ * Renders the list of purchasable upgrades and manages the description
+ * dialog shown on hover. Handles purchase attempts and displays feedback
+ * dialogs for success or insufficient clicks.
+ */
 export default class UpgradeView {
     #controller: ClickerSimulationController;
     #dialog: HTMLDialogElement;
@@ -46,12 +51,18 @@ export default class UpgradeView {
         });
     }
 
+    /**
+     * Sets the currently displayed upgrade and opens the description dialog.
+     */
     updateUpgradeDescription(upgrade: Upgrade) {
         this.#currentUpgrade = upgrade;
         this.render();
         this.#dialog.show();
     }
 
+    /**
+     * Re-renders the description dialog content for the current upgrade.
+     */
     render() {
         if (!this.#currentUpgrade) return;
         this.#dialog.innerHTML = `
@@ -60,11 +71,17 @@ export default class UpgradeView {
         `;
     }
 
+    /**
+     * Closes the description dialog and clears the current upgrade reference.
+     */
     closeView() {
         this.#dialog.close();
         this.#currentUpgrade = null;
     }
 
+    /**
+     * Displays a confirmation dialog after a successful upgrade purchase.
+     */
     #displayPurchasedDialog() {
         this.#dialog.innerHTML = `
             <button>X</button>
@@ -75,6 +92,10 @@ export default class UpgradeView {
             .addEventListener("click", () => this.#dialog.close());
     }
 
+    /**
+     * Displays an error dialog when the player does not have enough clicks
+     * to purchase the upgrade.
+     */
     #displayErrorDialog(missing: number) {
         this.#dialog.innerHTML = `
             <button>X</button>
@@ -86,6 +107,10 @@ export default class UpgradeView {
             .addEventListener("click", () => this.#dialog.close());
     }
 
+    /**
+     * Re-renders the description dialog if it is currently open,
+     * called when the model notifies of a state change.
+     */
     notify(): void {
         if (this.#dialog.open && this.#currentUpgrade) {
             this.render();

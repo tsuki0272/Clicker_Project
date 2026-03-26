@@ -2,6 +2,11 @@ import type ClickerSimulationController from "../controller/clickersimulation-co
 import type {Building} from "../model/building.ts";
 import {InsuficientClicksException} from "../model/clickersimulation.ts";
 
+/**
+ * Renders the list of purchasable buildings and manages the description
+ * dialog shown on hover. Handles purchase attempts and displays feedback
+ * dialogs for success or insufficient clicks.
+ */
 export default class BuildingView {
     #controller: ClickerSimulationController;
     #dialog: HTMLDialogElement;
@@ -46,12 +51,18 @@ export default class BuildingView {
         });
     }
 
+    /**
+     * Sets the currently displayed building and opens the description dialog.
+     */
     updateBuildingDescription(building: Building) {
         this.#currentBuilding = building;
         this.render();
         this.#dialog.show();
     }
 
+    /**
+     * Re-renders the description dialog content for the current building.
+     */
     render() {
         if (!this.#currentBuilding) return;
         this.#dialog.innerHTML = `
@@ -60,11 +71,17 @@ export default class BuildingView {
         `;
     }
 
+    /**
+     * Closes the description dialog and clears the current building reference.
+     */
     closeView() {
         this.#dialog.close();
         this.#currentBuilding = null;
     }
 
+    /**
+     * Displays a confirmation dialog after a successful building purchase.
+     */
     #displayPurchasedDialog() {
         this.#dialog.innerHTML = `
             <button>X</button>
@@ -75,6 +92,10 @@ export default class BuildingView {
             .addEventListener("click", () => this.#dialog.close());
     }
 
+    /**
+     * Displays an error dialog when the player does not have enough clicks
+     * to purchase the building.
+     */
     #displayErrorDialog(missing: number) {
         this.#dialog.innerHTML = `
             <button>X</button>
@@ -86,6 +107,10 @@ export default class BuildingView {
             .addEventListener("click", () => this.#dialog.close());
     }
 
+    /**
+     * Re-renders the description dialog if it is currently open,
+     * called when the model notifies of a state change.
+     */
     notify(): void {
         if (this.#dialog.open && this.#currentBuilding) {
             this.render();

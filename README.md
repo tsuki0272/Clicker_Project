@@ -6,14 +6,20 @@ date: Winter 2026
 
 # Overview
 
-Clicker Clicker is an implementation of a twist on a Clicker game (also “idle” or “incremental games”) for COMP 2452 in
+Clicker Clicker is an implementation of a twist on a Clicker game (also "idle" or "incremental games") for COMP 2452 in
 Winter 2026. Clicker Clicker has the user click on a Clicker (also known as a cursor), and offers some additional features:
 
+* Accounts are created and persisted in a local database, with passwords hashed using PBKDF2
+* Users can log into existing accounts and resume their progress
 * Total clicks are incremented every time the large Clicker is clicked
 * Click power can be increased by purchasing upgrades from the Upgrades section
 * There are 2 types of upgrades:
   * Additive Upgrades: These increase click power by a fixed amount
   * Multiplicative Upgrades: These increase your click power by a multiplicative factor
+* There are 2 types of buildings:
+  * Additive Buildings: These increase automatic clicks per second by a fixed amount
+  * Multiplicative Buildings: These multiply your current automatic clicks per second
+* All progress (clicks, click power, auto CPS, upgrade costs) is saved automatically
 * The goal is to get as many clicks as possible!
 
 [Incremental game]: https://en.wikipedia.org/wiki/Incremental_game
@@ -35,6 +41,8 @@ You can run the tests with Vitest:
 ```bash
 npx vitest
 ```
+
+Tests use an in-memory PGlite database, configured via the `VITE_DATABASE_URL=memory://` environment variable in `vitest.config.ts`.
 
 # Domain model and flow diagrams
 

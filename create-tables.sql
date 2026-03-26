@@ -3,7 +3,8 @@ create table if not exists account (
     username varchar(255) not null unique,
     password varchar(255) not null,
     total_clicks int not null,
-    click_power int not null
+    click_power int not null,
+    auto_cps int not null
 );
 
 -- Upgrade
@@ -33,3 +34,8 @@ create table if not exists building (
     foreign key (account_id) references account(username)
         on delete cascade
 );
+
+-- after creating the tables, we could load
+-- some default data into our database:
+
+-- insert into account(username, password, total_clicks, click_power, auto_cps) values('test', 'test_pw', 0, 1, 0);

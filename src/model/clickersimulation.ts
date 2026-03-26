@@ -23,12 +23,12 @@ export default class ClickerSimulation {
     #buildings: Array<Building>;
     #listeners: Array<Listener>;
 
-    constructor(username: string, password: string, totalClicks: number, clickPower: number) {
+    constructor(username: string, password: string, totalClicks: number, clickPower: number, autoCPS: number) {
         this.#username = username;
         this.#password = password;
         this.#totalClicks = totalClicks;
         this.#clickPower = clickPower;
-        this.#autoCPS = 0;
+        this.#autoCPS = autoCPS;
         this.#upgrades = new Array<Upgrade>();
         this.#buildings= new Array<Building>();
         this.#listeners = new Array<Listener>();
@@ -97,21 +97,22 @@ export default class ClickerSimulation {
             keyMaterial,
             256
         );
-        return Array.from(new Uint8Array(derivedBits))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
+
+        return new Uint8Array(derivedBits).toHex();
     }
 
     static async getAllAccounts(): Promise<Array<ClickerSimulation>> {
         const allAccounts = new Array<ClickerSimulation>();
 
         let results = await db()
-            .query<{username: string, password: string, total_clicks: number, click_power: number}>(
-                "select username, password, total_clicks, click_power from account");
+            .query<{username: string, password: string, total_clicks: number, click_power: number, auto_cps: number}>(
+                "select username, password, total_clicks, click_power, auto_cps from account");
+
 
         for(let row of results.rows) {
             let account = new ClickerSimulation(
-                row.username, row.password, row.total_clicks, row.click_power);
+                row.username, row.password, row.total_clicks, row.click_power, row.auto_cps);
+
 
             const additiveUpgrades = await Additiveupgrade.getUpgradesForAccount(account);
             const multiplicativeUpgrades = await Multiplicativeupgrade.getUpgradesForAccount(account);
@@ -129,21 +130,26 @@ export default class ClickerSimulation {
     }
 
     static async saveClickerSimulation(clickerSimulation: ClickerSimulation): Promise<ClickerSimulation> {
-        await db().query("insert into account(username, password, total_clicks, click_power) values($1, $2, $3, $4) on conflict do nothing returning username",
-            [clickerSimulation.username, clickerSimulation.password, clickerSimulation.totalClicks, clickerSimulation.clickPower])
+        const result = await db().query<{username: string}>(
+            "insert into account(username, password, total_clicks, click_power, auto_cps) values($1, $2, $3, $4, $5) on conflict do nothing returning username",
+            [clickerSimulation.username, clickerSimulation.password, clickerSimulation.totalClicks, clickerSimulation.clickPower, clickerSimulation.autoCPS])
+
+        if (result.rows.length === 0) throw new DuplicateUsernameException("Username is already taken");
 
         clickerSimulation.upgrades.forEach(upgrade => {
-            if(!upgrade.id) {
-                upgrade.saveUpgrade(upgrade);
-            }
+            if(!upgrade.id) upgrade.saveUpgrade(upgrade);
         })
 
         clickerSimulation.buildings.forEach(building => {
-            if(!building.dbId) {
-                building.saveBuilding(building);
-            }
+            if(!building.dbId) building.saveBuilding(building);
         })
         return clickerSimulation;
+    }
+
+    static async updateAccount(clickerSimulation: ClickerSimulation): Promise<void> {
+        await db().query(
+            "update account set total_clicks = $1, click_power = $2, auto_cps = $3 where username = $4",
+            [clickerSimulation.totalClicks, clickerSimulation.clickPower, clickerSimulation.autoCPS, clickerSimulation.username]);
     }
 
     /**
@@ -168,6 +174,33 @@ export default class ClickerSimulation {
         }
         this.notifyAll();
         this.#checkClickerSimulation();
+    }
+
+    /**
+     * Retrieves an account by its hashed password.
+     * Queries the database for the matching account name and hashed password, returning an error if invalid.
+     */
+    static async getAccountByUsername(username: string, hashedPassword: string): Promise<ClickerSimulation> {
+        const result = await db().query<{username: string, password: string, total_clicks: number, click_power: number, auto_cps: number}>(
+            "select username, password, total_clicks, click_power, auto_cps from account where username = $1 and password = $2",
+            [username, hashedPassword]);
+
+        if (result.rows.length === 0) throw new Error("Invalid username or password");
+
+        const row = result.rows[0];
+        const account = new ClickerSimulation(row.username, row.password, row.total_clicks, row.click_power, row.auto_cps);
+
+        const additiveUpgrades = await Additiveupgrade.getUpgradesForAccount(account);
+        const multiplicativeUpgrades = await Multiplicativeupgrade.getUpgradesForAccount(account);
+        additiveUpgrades.forEach(u => account.addUpgrade(u));
+        multiplicativeUpgrades.forEach(u => account.addUpgrade(u));
+
+        const additiveBuildings = await Additivebuilding.getBuildingsForAccount(account);
+        const multiplicativeBuildings = await Multiplicativebuilding.getBuildingsForAccount(account);
+        additiveBuildings.forEach(b => account.addBuilding(b));
+        multiplicativeBuildings.forEach(b => account.addBuilding(b));
+
+        return account;
     }
 
     /**
@@ -210,6 +243,7 @@ export default class ClickerSimulation {
         }
         upgrade.applyUpgrade();
         this.notifyAll();
+        ClickerSimulation.updateAccount(this);
         this.#checkClickerSimulation();
     }
 
@@ -236,6 +270,7 @@ export default class ClickerSimulation {
         this.#totalClicks -= building.cost;
         building.applyBuilding();
         this.notifyAll();
+        ClickerSimulation.updateAccount(this);
         this.#checkClickerSimulation();
     }
 
@@ -248,6 +283,7 @@ export default class ClickerSimulation {
     updateTotalClicks(by: number): void {
         this.#totalClicks += by;
         this.notifyAll();
+        ClickerSimulation.updateAccount(this);
         this.#checkClickerSimulation();
     }
 
@@ -289,3 +325,5 @@ export class InsuficientClicksException extends Error {
 }
 
 export class InvalidBuildingPurchaseException extends Error { }
+
+export class DuplicateUsernameException extends Error { }

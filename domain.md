@@ -29,180 +29,209 @@ date: Winter 2026
   * 1 Account is composed of 1 ClickerSimulation
   * 1 ClickerSimulation is composed of many Upgrades
 
+## Changes in Phase 2: Implementation:
+* Removed Account class — account identity (username, password) is now managed directly by ClickerSimulation
+* Replaced `id` with `name` as the app-level string identifier on Upgrade and Building; `dbId` is the DB-assigned serial
+* Added persistence methods to ClickerSimulation, Upgrade, and Building classes (saveUpgrade, saveBuilding, updateAccount, etc.)
+* Added `getUpgradeByName` and `getBuildingById` to ClickerSimulation
+* Replaced `buyBuilding` with `applyBuilding` to match upgrade naming convention
+* Added `autoCPS` as a persisted field on ClickerSimulation
+* Passwords are hashed using PBKDF2 before storage
+
 ```mermaid
 classDiagram
-    class Account {
+    class Clickersimulation {
         -~String username
         -String password
-        -ClickerSimulation clickerSim
-        
-        +get username() String
-        +get password() String
-        +set username() 
-        +set password()
-    }
-    
-    class Clickersimulation {
         -number totalClicks
         -number clickPower
         -number autoCPS
         -Array ~Upgrade~ upgrades
         -Array ~Building~ buildings
-        
+
+        +get username() String
+        +get password() String
         +get totalClicks() number
         +get clickPower() number
         +get autoCPS() number
         +get upgrades() Array ~Upgrade~
         +get buildings() Array ~Building~
-        +addUpgrade(Upgrade upgrade)
-        +getUpgradeById(String id) Upgrade
-        +updateTotalClicks(number clicks) void
-        +addBuilding(Building building)
+        +addUpgrade(Upgrade upgrade) void
+        +addBuilding(Building building) void
+        +getUpgradeByName(String name) Upgrade
         +getBuildingById(String id) Building
+        +applyUpgrade(Upgrade upgrade) void
+        +applyBuilding(Building building) void
+        +updateTotalClicks(number by) void
+        +static hashPassword(String username, String password) Promise~String~
+        +static getAllAccounts() Promise~Array~
+        +static saveClickerSimulation(ClickerSimulation cs) Promise~ClickerSimulation~
+        +static updateAccount(ClickerSimulation cs) Promise~void~
+        +static getAccountByUsername(String username, String password) Promise~ClickerSimulation~
     }
-    
+
     class Upgrade {
         <<interface>>
-        -~String id
+        -?number id
+        -~String name
         -String description
         -number cost
-        
-        +get id() String
+
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
-        
+
         +applyUpgrade() void
+        +saveUpgrade(Upgrade upgrade) Promise~Upgrade~
     }
-    
+
     class Additiveupgrade {
-        -~String id
+        -?number id
+        -~String name
         -String description
         -number cost
         -number additiveEffect
 
-        +get id() String
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
         +get additiveEffect() number
-        
+
         +applyUpgrade() void
+        +saveUpgrade(Upgrade upgrade) Promise~Upgrade~
+        +static saveUpgrade(Additiveupgrade upgrade) Promise~Upgrade~
+        +static getUpgradesForAccount(ClickerSimulation cs) Promise~Array~
+        +static updateUpgrade(Additiveupgrade upgrade) Promise~void~
     }
 
     class MultiplicativeUpgrade {
-        -~String id
+        -?number id
+        -~String name
         -String description
         -number cost
         -number multiplicativeEffect
 
-        +get id() String
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
         +get multiplicativeEffect() number
-        
+
         +applyUpgrade() void
+        +saveUpgrade(Upgrade upgrade) Promise~Upgrade~
+        +static saveUpgrade(MultiplicativeUpgrade upgrade) Promise~Upgrade~
+        +static getUpgradesForAccount(ClickerSimulation cs) Promise~Array~
+        +static updateUpgrade(MultiplicativeUpgrade upgrade) Promise~void~
     }
 
     class Building {
         <<interface>>
-        -~String id
+        -?number dbId
+        -~String name
         -String description
         -number cost
 
         +get id() String
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
 
-        +buyBuilding() void
+        +applyBuilding() void
+        +saveBuilding(Building building) Promise~Building~
     }
-    
+
     class AdditiveBuilding {
-        -String id
+        -?number dbId
+        -~String name
         -String description
         -number cost
         -number additiveValue
 
         +get id() String
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
         +get additiveValue() number
 
-        +buyBuilding() void
+        +applyBuilding() void
+        +saveBuilding(Building building) Promise~Building~
+        +static saveBuilding(AdditiveBuilding building) Promise~Building~
+        +static getBuildingsForAccount(ClickerSimulation cs) Promise~Array~
+        +static updateBuilding(AdditiveBuilding building) Promise~void~
     }
 
     class MultiplicativeBuilding {
-        -String id
+        -?number dbId
+        -~String name
         -String description
         -number cost
         -number multiplicativeValue
 
         +get id() String
+        +get name() String
         +get description() String
         +set description(String d)
         +get cost() number
         +get multiplicativeValue() number
 
-        +buyBuilding() void
+        +applyBuilding() void
+        +saveBuilding(Building building) Promise~Building~
+        +static saveBuilding(MultiplicativeBuilding building) Promise~Building~
+        +static getBuildingsForAccount(ClickerSimulation cs) Promise~Array~
+        +static updateBuilding(MultiplicativeBuilding building) Promise~void~
     }
 
-    note for Account "Class invariants:  
+    note for Clickersimulation "Class invariants:
     <ul>
         <li> username.size() >= 1
         <li> password.size() >= 1
-    </ul>
-    
-    "
-    
-    note for Clickersimulation "Class invariants:  
-    <ul>
         <li> totalClicks >= 0
         <li> clickPower >= 0
         <li> autoCPS >= 0
     </ul>"
-        
-    note for Additiveupgrade "Class invariants: 
+
+    note for Additiveupgrade "Class invariants:
     <ul>
-        <li> id.size() > 0
+        <li> name.size() > 0
         <li> description.size() > 0
         <li> cost > 0
         <li> additiveEffect > 0
     </ul>"
 
-    note for MultiplicativeUpgrade "Class invariants: 
+    note for MultiplicativeUpgrade "Class invariants:
     <ul>
-        <li> id.size() > 0
+        <li> name.size() > 0
         <li> description.size() > 0
         <li> cost > 0
         <li> multiplicativeEffect > 0
     </ul>"
 
-    note for AdditiveBuilding "Class invariants: 
+    note for AdditiveBuilding "Class invariants:
     <ul>
-        <li> id.size() > 0
+        <li> name.size() > 0
         <li> description.size() > 0
         <li> cost > 0
         <li> additiveValue > 0
     </ul>"
 
-    note for MultiplicativeBuilding "Class invariants: 
+    note for MultiplicativeBuilding "Class invariants:
     <ul>
-        <li> id.size() > 0
+        <li> name.size() > 0
         <li> description.size() > 0
         <li> cost > 0
         <li> multiplicativeValue > 0
     </ul>"
-    
-    Account "1" --* "1" Clickersimulation
+
     Clickersimulation "1" --* "*" Upgrade
     Clickersimulation "1" --* "*" Building
 
     Upgrade <|.. Additiveupgrade
     Upgrade <|.. MultiplicativeUpgrade
-    
+
     Building <|.. AdditiveBuilding
     Building <|.. MultiplicativeBuilding
 ```

@@ -1,6 +1,11 @@
 import Clickersimulation from "../model/clickersimulation.ts";
 import type ClickerSimulationController from "../controller/clickersimulation-controller.ts";
 
+/**
+ * Renders the main game UI including the clicker button, stats display,
+ * and containers for upgrades and buildings. Also drives the auto-click
+ * loop via setInterval, simulating passive income from buildings.
+ */
 export default class ClickerSimulationView {
     #clickerSimulation: Clickersimulation;
     #totalClicks: HTMLParagraphElement;
@@ -42,6 +47,10 @@ export default class ClickerSimulationView {
         this.#dialog = document.createElement("dialog");
         this.#dialog.id = "purchase-dialog";
 
+        /**
+         * Drives passive income by calling updateTotalClicksAuto every second,
+         * mirroring the same controller method used by the manual click button.
+         */
         setInterval(() => {
             if (this.#clickerSimulation.autoCPS > 0) {
                 this.#controller.updateTotalClicksAuto();
@@ -51,10 +60,9 @@ export default class ClickerSimulationView {
         this.notify();
     }
 
-    #closeDialog() {
-        this.#dialog.close();
-    }
-
+    /**
+     * Re-renders the stats display in response to model state changes.
+     */
     notify(): void {
         this.#totalClicks.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.totalClicks}`;
         this.#clickPower.innerHTML = `<b>Click power:</b> ${this.#clickerSimulation.clickPower}`;

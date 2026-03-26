@@ -1,6 +1,13 @@
 import { PGlite } from '@electric-sql/pglite';
+import ddl from '../../create-tables.sql?raw'
 
-const pgliteDb = await PGlite.create('idb://clicker_project');
+let src = import.meta.env.VITE_DATABASE_URL;
+
+const pgliteDb = await PGlite.create(src);
+
+if(src == 'memory://') {
+    db().exec(ddl);
+}
 
 export default function db() {
     return pgliteDb;
