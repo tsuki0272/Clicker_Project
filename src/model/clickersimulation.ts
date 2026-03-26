@@ -230,7 +230,6 @@ export default class ClickerSimulation {
      */
     applyUpgrade(upgrade: Upgrade): void {
         if (this.#totalClicks - upgrade.cost < 0) {
-            // console.log(this.#totalClicks - upgrade.cost);
             throw new InsuficientClicksException(upgrade.cost - this.totalClicks);
         }
         this.#totalClicks -= upgrade.cost;
@@ -254,7 +253,6 @@ export default class ClickerSimulation {
      */
     applyBuilding(building: Building): void {
         if (this.#totalClicks - building.cost < 0) {
-            // console.log(this.#totalClicks - upgrade.cost);
             throw new InsuficientClicksException(building.cost - this.totalClicks);
         }
 
@@ -327,3 +325,7 @@ export class InsuficientClicksException extends Error {
 export class InvalidBuildingPurchaseException extends Error { }
 
 export class DuplicateUsernameException extends Error { }
+
+export class InvalidUsernameException extends Error { }
+
+export class InvalidPasswordException extends Error { }

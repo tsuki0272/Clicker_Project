@@ -1,10 +1,9 @@
 import ClickerSimulationController from "../controller/clickersimulation-controller.ts";
-import {DuplicateUsernameException} from "../model/clickersimulation.ts";
+import {DuplicateUsernameException, InvalidUsernameException, InvalidPasswordException} from "../model/clickersimulation.ts";
 
 /**
- * Renders the account registration form and validates input before
- * delegating account creation to the controller. Displays errors for
- * empty fields or duplicate usernames.
+ * Renders the account registration form and delegates account creation
+ * to the controller. Displays errors for duplicate usernames or other failures.
  */
 export default class CreateAccountView {
     #controller: ClickerSimulationController;
@@ -42,25 +41,20 @@ export default class CreateAccountView {
     }
 
     /**
-     * Reads the username and password from the form, validates them,
-     * and delegates to the controller. Shows an error dialog on failure.
+     * Reads the username and password from the form and delegates to the
+     * controller. Shows an error dialog on failure.
      */
     #addAccount(): void {
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
 
-        if (username.length === 0) {
-            this.#showError("Username cannot be empty.");
-            return;
-        }
-        if (password.length === 0) {
-            this.#showError("Password cannot be empty.");
-            return;
-        }
-
         this.#controller.addAccount(username, password).catch(e => {
             if (e instanceof DuplicateUsernameException) {
                 this.#showError("Username is already taken.");
+            } else if (e instanceof InvalidUsernameException) {
+                this.#showError("Username cannot be empty.");
+            } else if (e instanceof InvalidPasswordException) {
+                this.#showError("Password cannot be empty.");
             } else {
                 this.#showError("An error occurred. Please try again.");
             }

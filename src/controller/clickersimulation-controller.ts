@@ -1,4 +1,4 @@
-import Clickersimulation, {DuplicateUsernameException} from "../model/clickersimulation.ts";
+import Clickersimulation, {DuplicateUsernameException, InvalidUsernameException, InvalidPasswordException} from "../model/clickersimulation.ts";
 import Additiveupgrade from "../model/additiveupgrade.ts";
 import ClickerSimulationView from "../view/clickersimulation-view.ts";
 import Multiplicativeupgrade from "../model/multiplicativeupgrade.ts";
@@ -62,6 +62,9 @@ export default class ClickerSimulationController {
      * and buildings, persists everything to the database, then launches the game.
      */
     async addAccount(username: string, password: string): Promise<void> {
+        if (username.length === 0) throw new InvalidUsernameException("Username cannot be empty.");
+        if (password.length === 0) throw new InvalidPasswordException("Password cannot be empty.");
+
         const hashedPassword = await Clickersimulation.hashPassword(username, password);
         this.#clickersimulation = new ClickerSimulation(username, hashedPassword, 0, 1, 0);
 
