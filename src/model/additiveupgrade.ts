@@ -119,6 +119,25 @@ export default class Additiveupgrade implements Upgrade {
     }
 
     /**
+     * Reads all additive upgrade templates from the inventory table.
+     * Called during account creation to seed a new account's upgrades.
+     */
+    static async getFromInventory(account: ClickerSimulation): Promise<Array<Additiveupgrade>> {
+        let results = await db().query<{
+            name: string;
+            description: string;
+            cost: number;
+            additive_effect: number;
+        }>(
+            "select name, description, cost, additive_effect from upgrade_inventory where additive_effect is not null"
+        );
+
+        return results.rows.map(row =>
+            new Additiveupgrade(row.name, row.description, row.cost, row.additive_effect, account)
+        );
+    }
+
+    /**
      * Updates the upgrade's cost in the database after it has been purchased
      * and its cost has been scaled for the next tier.
      */

@@ -95,6 +95,25 @@ export default class Additivebuilding implements Building {
     }
 
     /**
+     * Reads all additive building templates from the inventory table.
+     * Called during account creation to seed a new account's buildings.
+     */
+    static async getFromInventory(account: ClickerSimulation): Promise<Array<Additivebuilding>> {
+        let results = await db().query<{
+            name: string;
+            description: string;
+            cost: number;
+            additive_value: number;
+        }>(
+            "select name, description, cost, additive_value from building_inventory where additive_value is not null"
+        );
+
+        return results.rows.map(row =>
+            new Additivebuilding(row.name, row.description, row.cost, row.additive_value, account)
+        );
+    }
+
+    /**
      * Updates the building's cost in the database after it has been purchased
      * and its cost has been scaled for the next tier.
      */

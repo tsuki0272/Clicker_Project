@@ -114,6 +114,25 @@ export default class Multiplicativeupgrade implements Upgrade {
     }
 
     /**
+     * Reads all multiplicative upgrade templates from the inventory table.
+     * Called during account creation to seed a new account's upgrades.
+     */
+    static async getFromInventory(account: ClickerSimulation): Promise<Array<Multiplicativeupgrade>> {
+        let results = await db().query<{
+            name: string;
+            description: string;
+            cost: number;
+            multiplicative_effect: number;
+        }>(
+            "select name, description, cost, multiplicative_effect from upgrade_inventory where multiplicative_effect is not null"
+        );
+
+        return results.rows.map(row =>
+            new Multiplicativeupgrade(row.name, row.description, row.cost, row.multiplicative_effect, account)
+        );
+    }
+
+    /**
      * Updates the upgrade's cost in the database after it has been purchased
      * and its cost has been scaled for the next tier.
      */

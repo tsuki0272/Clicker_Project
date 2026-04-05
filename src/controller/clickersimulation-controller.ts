@@ -68,26 +68,19 @@ export default class ClickerSimulationController {
         const hashedPassword = await Clickersimulation.hashPassword(username, password);
         this.#clickersimulation = new ClickerSimulation(username, hashedPassword, 0, 1, 0);
 
-        let additiveUpgrade = new Additiveupgrade(
-            "additiveUpgrade1", `Increases CLICK POWER by 10`,
-            10, 1, this.#clickersimulation);
-        this.#clickersimulation.addUpgrade(additiveUpgrade);
+        // Load upgrades from inventory and register them on the new account
+        const additiveUpgrades = await Additiveupgrade.getFromInventory(this.#clickersimulation);
+        const multiplicativeUpgrades = await Multiplicativeupgrade.getFromInventory(this.#clickersimulation);
+        additiveUpgrades.forEach(u => this.#clickersimulation!.addUpgrade(u));
+        multiplicativeUpgrades.forEach(u => this.#clickersimulation!.addUpgrade(u));
 
-        let multiplicativeUpgrade = new Multiplicativeupgrade(
-            "multiplicativeUpgrade1", `Multiplies CLICK POWER by 1.2`,
-            20, 1.2, this.#clickersimulation);
-        this.#clickersimulation.addUpgrade(multiplicativeUpgrade);
+        // Load buildings from inventory and register them on the new account
+        const additiveBuildings = await Additivebuilding.getFromInventory(this.#clickersimulation);
+        const multiplicativeBuildings = await Multiplicativebuilding.getFromInventory(this.#clickersimulation);
+        additiveBuildings.forEach(b => this.#clickersimulation!.addBuilding(b));
+        multiplicativeBuildings.forEach(b => this.#clickersimulation!.addBuilding(b));
 
-        let additiveBuilding = new Additivebuilding(
-            "additiveBuilding1", "Increases AUTOMATIC CLICKS by 1",
-            15, 1, this.#clickersimulation);
-        this.#clickersimulation.addBuilding(additiveBuilding);
-
-        let multiplicativeBuilding = new Multiplicativebuilding(
-            "multiplicativeBuilding1", "Multiplies AUTOMATIC CLICKS by 1.5",
-            25, 1.5, this.#clickersimulation);
-        this.#clickersimulation.addBuilding(multiplicativeBuilding);
-
+        // saveClickerSimulation will persist the account and all its upgrades/buildings
         await Clickersimulation.saveClickerSimulation(this.#clickersimulation);
 
         this.#createAccountView = undefined;

@@ -95,6 +95,25 @@ export default class Multiplicativebuilding implements Building {
     }
 
     /**
+     * Reads all multiplicative building templates from the inventory table.
+     * Called during account creation to seed a new account's buildings.
+     */
+    static async getFromInventory(account: ClickerSimulation): Promise<Array<Multiplicativebuilding>> {
+        let results = await db().query<{
+            name: string;
+            description: string;
+            cost: number;
+            multiplicative_value: number;
+        }>(
+            "select name, description, cost, multiplicative_value from building_inventory where multiplicative_value is not null"
+        );
+
+        return results.rows.map(row =>
+            new Multiplicativebuilding(row.name, row.description, row.cost, row.multiplicative_value, account)
+        );
+    }
+
+    /**
      * Updates the building's cost in the database after it has been purchased
      * and its cost has been scaled for the next tier.
      */
