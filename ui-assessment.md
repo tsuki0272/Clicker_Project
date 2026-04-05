@@ -104,7 +104,10 @@ to return to the Welcome screen. All upgrades and buildings operate in the same 
 funds validation, success dialog).
 
 ## How I might change my UI for Phase 3
+* **Make Unaffordable Actions Visibly Disabled:** I will grey out or indicate in some other way (dialog indication)
+to users that certain upgrades/buildings cannot currently be purchased
 * **Fix Button Labels:** I will change "additiveUpgrade1" back to human-readable text like 
 "Upgrade Click Power (Lvl 1)" or simply "Click Power Upgrade."
 * **Visual Feedback for Account User:** I will indicate to users the name of the user at the 
 top for better state awareness
+* **Clearly Show Core Mechanic:**: I will indicate to users that clicking on the cursor will increase total clicks

@@ -13,31 +13,6 @@ date: Winter 2026
 * If a value must be unique for all instances of that class use ~ as type prefix.
 * Relationships will be bidirectional.
 
-## Changes in Phase 2:
-* Added 3 new classes:
-  * Account (contains an instance of ClickerSimulation and handles user identification)
-  * Building (interface, used for autoclicking)
-    * AdditiveBuilding
-    * MultiplicativeBuilding
-
-* Made Changes to ClickerSimulation:
-  * Added array of Buildings and supporting methods
-  * Added new field **autoCPS** that will increase totalClicks automatically
-  * Buildings will increase autoCPS by a certain amount with every purchase
-
-* Added data modelling information like cardinality, constraints, and bidirectional relationships.
-  * 1 Account is composed of 1 ClickerSimulation
-  * 1 ClickerSimulation is composed of many Upgrades
-
-## Changes in Phase 2: Implementation:
-* Removed Account class — account identity (username, password) is now managed directly by ClickerSimulation
-* Replaced `id` with `name` as the app-level string identifier on Upgrade and Building; `dbId` is the DB-assigned serial
-* Added persistence methods to ClickerSimulation, Upgrade, and Building classes (saveUpgrade, saveBuilding, updateAccount, etc.)
-* Added `getUpgradeByName` and `getBuildingById` to ClickerSimulation
-* Replaced `buyBuilding` with `applyBuilding` to match upgrade naming convention
-* Added `autoCPS` as a persisted field on ClickerSimulation
-* Passwords are hashed using PBKDF2 before storage
-
 ```mermaid
 classDiagram
     class Clickersimulation {
