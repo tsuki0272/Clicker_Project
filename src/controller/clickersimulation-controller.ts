@@ -91,6 +91,8 @@ export default class ClickerSimulationController {
         this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
         this.#upgradeView = new UpgradeView(this, this.#clickersimulation.upgrades);
         this.#buildingView = new BuildingView(this, this.#clickersimulation.buildings);
+        this.#clickersimulation.registerListener(this.#upgradeView);
+        this.#clickersimulation.registerListener(this.#buildingView);
     }
 
     /**
@@ -109,11 +111,13 @@ export default class ClickerSimulationController {
         this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
         this.#upgradeView = new UpgradeView(this, this.#clickersimulation.upgrades);
         this.#buildingView = new BuildingView(this, this.#clickersimulation.buildings);
+        this.#clickersimulation.registerListener(this.#upgradeView);
+        this.#clickersimulation.registerListener(this.#buildingView);
     }
 
     /**
      * Fetches the trained Markov model from model.json and loads it into the simulation.
-     * model.json must be in the project's public directory so it is served statically.
+     * model.json must be in the model-training directory so it is served statically.
      */
     async #loadModel(): Promise<void> {
         const response = await fetch('/model-training/model.json');
@@ -138,6 +142,10 @@ export default class ClickerSimulationController {
 
     get roboBuyActive(): boolean {
         return this.#roboBuyActive;
+    }
+
+    get totalClicks(): number {
+        return this.#clickersimulation!.totalClicks;
     }
 
     /**

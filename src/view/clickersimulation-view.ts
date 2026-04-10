@@ -21,12 +21,14 @@ export default class ClickerSimulationView {
         this.#controller = controller;
 
         document.querySelector('#clickerSim')!.innerHTML = `
+            <p id="username-display">Logged in as: <b>${this.#clickerSimulation.username}</b></p>
             <p id="totalClicks"> <b>Total clicks:</b> ${this.#clickerSimulation.totalClicks} </p>
             <p id="clickPower"> <b>Click power:</b> ${this.#clickerSimulation.clickPower} </p>
             <p id="autoCPS"> <b>Auto CPS:</b> ${this.#clickerSimulation.autoCPS} </p>
             <button type="button" id="clicker-button" style="cursor: pointer;">
                 <img src="assets/Cursor.webp" height="256" width="256" alt="Cursor image"/>
             </button>
+            <p>Click the cursor to earn clicks!</p>
             <button type="button" id="robo-buy-button" disabled>Robo-Buy: OFF</button>`
 
         this.#totalClicks = document.querySelector("#totalClicks")!;

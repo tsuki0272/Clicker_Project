@@ -11,6 +11,7 @@ export default class UpgradeView {
     #controller: ClickerSimulationController;
     #dialog: HTMLDialogElement;
     #currentUpgrade: Upgrade | null = null;
+    #buttons: Map<Upgrade, HTMLButtonElement> = new Map();
 
     constructor(controller: ClickerSimulationController, upgrades: Array<Upgrade>) {
         this.#controller = controller;
@@ -22,8 +23,8 @@ export default class UpgradeView {
         const container = document.querySelector("#upgrades-container")!;
         upgrades.forEach(upgrade => {
             const button = document.createElement("button");
-            button.textContent = upgrade.name;
-            button.style.cursor = "pointer";
+            button.textContent = upgrade.description;
+            button.disabled = true;
 
             button.addEventListener("mouseover", () => {
                 if (!this.#dialog.open) {
@@ -47,6 +48,7 @@ export default class UpgradeView {
                 }
             });
 
+            this.#buttons.set(upgrade, button);
             container.appendChild(button);
         });
     }
@@ -109,11 +111,15 @@ export default class UpgradeView {
 
     /**
      * Re-renders the description dialog if it is currently open,
-     * called when the model notifies of a state change.
+     * and updates each button's disabled state to indicate whether it is affordable.
      */
     notify(): void {
         if (this.#dialog.open && this.#currentUpgrade) {
             this.render();
         }
+        const totalClicks = this.#controller.totalClicks;
+        this.#buttons.forEach((button, upgrade) => {
+            button.disabled = upgrade.cost > totalClicks;
+        });
     }
 }

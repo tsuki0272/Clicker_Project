@@ -11,6 +11,7 @@ export default class BuildingView {
     #controller: ClickerSimulationController;
     #dialog: HTMLDialogElement;
     #currentBuilding: Building | null = null;
+    #buttons: Map<Building, HTMLButtonElement> = new Map();
 
     constructor(controller: ClickerSimulationController, buildings: Array<Building>) {
         this.#controller = controller;
@@ -22,8 +23,8 @@ export default class BuildingView {
         const container = document.querySelector("#buildings-container")!;
         buildings.forEach(building => {
             const button = document.createElement("button");
-            button.textContent = building.name;
-            button.style.cursor = "pointer";
+            button.textContent = building.description;
+            button.disabled = true;
 
             button.addEventListener("mouseover", () => {
                 if (!this.#dialog.open) {
@@ -47,6 +48,7 @@ export default class BuildingView {
                 }
             });
 
+            this.#buttons.set(building, button);
             container.appendChild(button);
         });
     }
@@ -109,11 +111,15 @@ export default class BuildingView {
 
     /**
      * Re-renders the description dialog if it is currently open,
-     * called when the model notifies of a state change.
+     * and updates each button's disabled state to indicate whether it is affordable.
      */
     notify(): void {
         if (this.#dialog.open && this.#currentBuilding) {
             this.render();
         }
+        const totalClicks = this.#controller.totalClicks;
+        this.#buttons.forEach((button, building) => {
+            button.disabled = building.cost > totalClicks;
+        });
     }
 }

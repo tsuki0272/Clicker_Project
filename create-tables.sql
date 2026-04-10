@@ -58,47 +58,47 @@ create table building_inventory (
 
 -- Initializing upgrade inventory
 insert into upgrade_inventory(name, description, cost, additive_effect)
-values('additiveUpgrade1', 'Increases CLICK POWER by 10', 10, 10);
+values('additiveUpgrade1', 'Increase CLICK POWER by 10', 10, 10);
 
 insert into upgrade_inventory(name, description, cost, multiplicative_effect)
-values('multiplicativeUpgrade1', 'Multiplies CLICK POWER by 1.2', 20, 1.2);
+values('multiplicativeUpgrade1', 'Multiply CLICK POWER by 1.2', 20, 1.2);
 
 -- 6 new purchasable upgrades:
 insert into upgrade_inventory(name, description, cost, additive_effect)
-values('additiveUpgrade2', 'Increases CLICK POWER by 1', 5, 1);
+values('additiveUpgrade2', 'Increase CLICK POWER by 1', 5, 1);
 
 insert into upgrade_inventory(name, description, cost, additive_effect)
-values('additiveUpgrade3', 'Increases CLICK POWER by 25', 30, 25);
+values('additiveUpgrade3', 'Increase CLICK POWER by 25', 30, 25);
 
 insert into upgrade_inventory(name, description, cost, additive_effect)
-values('additiveUpgrade4', 'Increases CLICK POWER by 50', 75, 50);
+values('additiveUpgrade4', 'Increase CLICK POWER by 50', 75, 50);
 
 insert into upgrade_inventory(name, description, cost, multiplicative_effect)
-values('multiplicativeUpgrade2', 'Multiplies CLICK POWER by 2.0', 50, 2.0);
+values('multiplicativeUpgrade2', 'Multiply CLICK POWER by 2.0', 50, 2.0);
 
 insert into upgrade_inventory(name, description, cost, multiplicative_effect)
-values('multiplicativeUpgrade3', 'Multiplies CLICK POWER by 1.5', 60, 1.5);
+values('multiplicativeUpgrade3', 'Multiply CLICK POWER by 1.5', 60, 1.5);
 
 insert into upgrade_inventory(name, description, cost, multiplicative_effect)
-values('multiplicativeUpgrade4', 'Multiplies CLICK POWER by 3.0', 150, 3.0);
+values('multiplicativeUpgrade4', 'Multiply CLICK POWER by 3.0', 150, 3.0);
 
 
 -- Initializing building inventory
 insert into building_inventory(name, description, cost, additive_value)
-values('additiveBuilding1', 'Increases AUTOMATIC CLICKS by 1', 15, 1);
+values('additiveBuilding1', 'Increase AUTOMATIC CLICKS by 1', 15, 1);
 
 insert into building_inventory(name, description, cost, multiplicative_value)
-values('multiplicativeBuilding1', 'Multiplies AUTOMATIC CLICKS by 1.5', 25, 1.5);
+values('multiplicativeBuilding1', 'Multiply AUTOMATIC CLICKS by 1.5', 25, 1.5);
 
 -- 4 new purchasable buildings:
 insert into building_inventory(name, description, cost, additive_value)
-values('additiveBuilding2', 'Increases AUTOMATIC CLICKS by 5', 50, 5);
+values('additiveBuilding2', 'Increase AUTOMATIC CLICKS by 5', 50, 5);
 
 insert into building_inventory(name, description, cost, additive_value)
-values('additiveBuilding3', 'Increases AUTOMATIC CLICKS by 10', 120, 10);
+values('additiveBuilding3', 'Increase AUTOMATIC CLICKS by 10', 120, 10);
 
 insert into building_inventory(name, description, cost, multiplicative_value)
-values('multiplicativeBuilding2', 'Multiplies AUTOMATIC CLICKS by 2.0', 80, 2.0);
+values('multiplicativeBuilding2', 'Multiply AUTOMATIC CLICKS by 2.0', 80, 2.0);
 
 insert into building_inventory(name, description, cost, multiplicative_value)
-values('multiplicativeBuilding3', 'Multiplies AUTOMATIC CLICKS by 3.0', 300, 3.0);
+values('multiplicativeBuilding3', 'Multiply AUTOMATIC CLICKS by 3.0', 300, 3.0);
