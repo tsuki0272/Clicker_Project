@@ -20,6 +20,7 @@ Winter 2026. Clicker Clicker has the user click on a Clicker (also known as a cu
   * Additive Buildings: These increase automatic clicks per second by a fixed amount
   * Multiplicative Buildings: These multiply your current automatic clicks per second
 * All progress (clicks, click power, auto CPS, upgrade costs) is saved automatically
+* A Robo-Buy feature can be toggled on to automatically purchase upgrades and buildings using a trained Markov chain
 * The goal is to get as many clicks as possible!
 
 [Incremental game]: https://en.wikipedia.org/wiki/Incremental_game
@@ -43,6 +44,17 @@ npx vitest
 ```
 
 Tests use an in-memory PGlite database, configured via the `VITE_DATABASE_URL=memory://` environment variable in `vitest.config.ts`.
+
+## Training
+
+The Markov chain model is trained offline using the training program in `model-training/training.ts`. The training program reads `model-training/training.csv` and outputs a trained model file.
+
+To run the training program:
+
+```bash
+cd model-training
+npx tsx training.ts
+```
 
 # Domain model and flow diagrams
 

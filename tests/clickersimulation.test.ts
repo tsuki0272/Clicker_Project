@@ -227,3 +227,36 @@ test('throws error on wrong password', async () => {
     }
     expect(caught).equals(true);
 });
+
+// ── Markov / Robo-Buy ────────────────────────────────────────────────────────
+
+test('roboBuyNext purchases an upgrade when affordable', async () => {
+    let cs = makeAccount();
+    await Clickersimulation.saveClickerSimulation(cs);
+    let au = new Additiveupgrade("additive1", "Increases CLICK POWER by 1", 10, 1, cs);
+    cs.addUpgrade(au);
+    await Additiveupgrade.saveUpgrade(au);
+    cs.updateTotalClicks(100);
+    // state 0 always transitions to state 0 (upgrades[0] = au), guaranteed outcome
+    const numerator = Array.from({ length: 10 }, () => Array(10).fill(0));
+    numerator[0][0] = 1;
+    const denominator = Array(10).fill(0);
+    denominator[0] = 1;
+    cs.loadMarkovModel(numerator, denominator);
+    cs.roboBuyNext();
+    expect(cs.upgradesPurchased).equals(1);
+});
+
+test('roboBuyNext silently skips when player cannot afford the chosen item', () => {
+    let cs = makeAccount();
+    let au = new Additiveupgrade("additive1", "Increases CLICK POWER by 1", 10, 1, cs);
+    cs.addUpgrade(au);
+    // totalClicks is 0, upgrade costs 10 — should skip without throwing
+    const numerator = Array.from({ length: 10 }, () => Array(10).fill(0));
+    numerator[0][0] = 1;
+    const denominator = Array(10).fill(0);
+    denominator[0] = 1;
+    cs.loadMarkovModel(numerator, denominator);
+    expect(() => cs.roboBuyNext()).not.toThrow();
+    expect(cs.upgradesPurchased).equals(0);
+});

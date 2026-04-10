@@ -7,6 +7,7 @@ import type {Building} from "./building.ts";
 import Additivebuilding from "./additivebuilding.ts";
 import Multiplicativebuilding from "./multiplicativebuilding.ts";
 import db from "./connection.ts";
+import seedrandom from 'seedrandom';
 
 /**
  * Core engine for the clicker game simulation.
@@ -22,6 +23,11 @@ export default class ClickerSimulation {
     #upgrades: Array<Upgrade>;
     #buildings: Array<Building>;
     #listeners: Array<Listener>;
+    #markovNumerator: number[][] = [];
+    #markovDenominator: number[] = [];
+    #lastPurchasedIndex: number = 0;
+    #upgradesPurchased: number = 0;
+    #rng: seedrandom.PRNG = seedrandom('default');
 
     constructor(username: string, password: string, totalClicks: number, clickPower: number, autoCPS: number) {
         this.#username = username;
@@ -74,6 +80,10 @@ export default class ClickerSimulation {
 
     get buildings(): Array<Building> {
         return this.#buildings;
+    }
+
+    get upgradesPurchased(): number {
+        return this.#upgradesPurchased;
     }
     // ----------------------------------------------
 
@@ -240,6 +250,11 @@ export default class ClickerSimulation {
             this.#clickPower = Math.ceil(
                 this.#clickPower *= upgrade.multiplicativeEffect);
         }
+
+        const index = this.#upgrades.indexOf(upgrade);
+        if (index !== -1) this.#lastPurchasedIndex = index;
+        this.#upgradesPurchased++;
+
         upgrade.applyUpgrade();
         this.notifyAll();
         ClickerSimulation.updateAccount(this);
@@ -266,10 +281,69 @@ export default class ClickerSimulation {
                 this.#autoCPS *= building.multiplicativeValue);
         }
         this.#totalClicks -= building.cost;
+
+        const index = this.#buildings.indexOf(building);
+        if (index !== -1) this.#lastPurchasedIndex = this.#upgrades.length + index;
+
         building.applyBuilding();
         this.notifyAll();
         ClickerSimulation.updateAccount(this);
         this.#checkClickerSimulation();
+    }
+
+    /**
+     * Loads the trained Markov model weights into the simulation.
+     * numerator[i][j] is the count of transitions from state i to state j.
+     * denominator[i] is the total number of transitions out of state i.
+     */
+    loadMarkovModel(numerator: number[][], denominator: number[]): void {
+        this.#markovNumerator = numerator;
+        this.#markovDenominator = denominator;
+    }
+
+    /**
+     * Reseeds the random number generator used by the Markov chain.
+     * Calling this with the same seed will produce the same sequence of purchases.
+     */
+    setSeed(seed: string): void {
+        this.#rng = seedrandom(seed);
+    }
+
+    /**
+     * Uses the trained Markov chain to pick and attempt to purchase the next item.
+     * Selects the next state from the row of the last purchased item's index,
+     * sampling proportionally to the transition counts. Silently skips if the
+     * player cannot afford the selected item.
+     */
+    roboBuyNext(): void {
+        if (this.#markovNumerator.length === 0) return;
+
+        const row = this.#markovNumerator[this.#lastPurchasedIndex];
+        const total = this.#markovDenominator[this.#lastPurchasedIndex];
+        if (total === 0) return;
+
+        let rand = this.#rng() * total;
+        let nextIndex = row.length - 1;
+        for (let i = 0; i < row.length; i++) {
+            rand -= row[i];
+            if (rand <= 0) {
+                nextIndex = i;
+                break;
+            }
+        }
+
+        try {
+            if (nextIndex < this.#upgrades.length) {
+                this.applyUpgrade(this.#upgrades[nextIndex]);
+            } else {
+                const buildingIndex = nextIndex - this.#upgrades.length;
+                if (buildingIndex < this.#buildings.length) {
+                    this.applyBuilding(this.#buildings[buildingIndex]);
+                }
+            }
+        } catch (e) {
+            // Not enough clicks this tick; robo-buy will retry on the next interval
+        }
     }
 
     /**

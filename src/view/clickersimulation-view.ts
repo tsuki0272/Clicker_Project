@@ -13,6 +13,7 @@ export default class ClickerSimulationView {
     #autoCPS: HTMLParagraphElement;
     #dialog: HTMLDialogElement;
     #controller: ClickerSimulationController;
+    #roboBuyButton: HTMLButtonElement;
 
     constructor(clickerSimulation: Clickersimulation, controller: ClickerSimulationController) {
         this.#clickerSimulation = clickerSimulation;
@@ -25,16 +26,23 @@ export default class ClickerSimulationView {
             <p id="autoCPS"> <b>Auto CPS:</b> ${this.#clickerSimulation.autoCPS} </p>
             <button type="button" id="clicker-button" style="cursor: pointer;">
                 <img src="assets/Cursor.webp" height="256" width="256" alt="Cursor image"/>
-            </button>`
+            </button>
+            <button type="button" id="robo-buy-button" disabled>Robo-Buy: OFF</button>`
 
         this.#totalClicks = document.querySelector("#totalClicks")!;
         this.#clickPower = document.querySelector("#clickPower")!;
         this.#autoCPS = document.querySelector("#autoCPS")!;
+        this.#roboBuyButton = document.querySelector("#robo-buy-button")!;
 
         document.querySelector("#clicker-button")!
             .addEventListener("click", () => {
                 this.#controller.updateTotalClicks();
             });
+
+        this.#roboBuyButton.addEventListener("click", () => {
+            this.#controller.toggleRoboBuy();
+            this.notify();
+        });
 
         document.querySelector("#purchasablesSection")!.innerHTML =
             `<div id='clickerSimulation'>
@@ -62,10 +70,13 @@ export default class ClickerSimulationView {
 
     /**
      * Re-renders the stats display in response to model state changes.
+     * Also keeps the robo-buy button label and enabled state in sync.
      */
     notify(): void {
         this.#totalClicks.innerHTML = `<b>Total clicks:</b> ${this.#clickerSimulation.totalClicks}`;
         this.#clickPower.innerHTML = `<b>Click power:</b> ${this.#clickerSimulation.clickPower}`;
         this.#autoCPS.innerHTML = `<b>Auto CPS:</b> ${this.#clickerSimulation.autoCPS}`;
+        this.#roboBuyButton.disabled = this.#clickerSimulation.upgradesPurchased === 0;
+        this.#roboBuyButton.textContent = `Robo-Buy: ${this.#controller.roboBuyActive ? 'ON' : 'OFF'}`;
     }
 }

@@ -26,6 +26,8 @@ export default class ClickerSimulationController {
     #createAccountView?: CreateAccountView;
     #upgradeView?: UpgradeView;
     #buildingView?: BuildingView;
+    #roboBuyActive: boolean = false;
+    #roboBuyInterval?: number;
 
     constructor() {
         this.#loginPageView = new LoginPageView(this);
@@ -83,6 +85,8 @@ export default class ClickerSimulationController {
         // saveClickerSimulation will persist the account and all its upgrades/buildings
         await Clickersimulation.saveClickerSimulation(this.#clickersimulation);
 
+        await this.#loadModel();
+
         this.#createAccountView = undefined;
         this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
         this.#upgradeView = new UpgradeView(this, this.#clickersimulation.upgrades);
@@ -98,10 +102,42 @@ export default class ClickerSimulationController {
         const account = await Clickersimulation.getAccountByUsername(username, hashedPassword);
 
         this.#clickersimulation = account;
+
+        await this.#loadModel();
+
         this.#loginView = undefined;
         this.#clickerSimulationView = new ClickerSimulationView(this.#clickersimulation, this);
         this.#upgradeView = new UpgradeView(this, this.#clickersimulation.upgrades);
         this.#buildingView = new BuildingView(this, this.#clickersimulation.buildings);
+    }
+
+    /**
+     * Fetches the trained Markov model from model.json and loads it into the simulation.
+     * model.json must be in the project's public directory so it is served statically.
+     */
+    async #loadModel(): Promise<void> {
+        const response = await fetch('/model-training/model.json');
+        const { numerator, denominator } = await response.json();
+        this.#clickersimulation!.loadMarkovModel(numerator, denominator);
+    }
+
+    /**
+     * Toggles the robo-buy feature on or off.
+     * While active, attempts to auto-purchase an item every second using the Markov chain.
+     */
+    toggleRoboBuy(): void {
+        this.#roboBuyActive = !this.#roboBuyActive;
+        if (this.#roboBuyActive) {
+            this.#roboBuyInterval = window.setInterval(() => {
+                this.#clickersimulation!.roboBuyNext();
+            }, 1000);
+        } else {
+            clearInterval(this.#roboBuyInterval);
+        }
+    }
+
+    get roboBuyActive(): boolean {
+        return this.#roboBuyActive;
     }
 
     /**
